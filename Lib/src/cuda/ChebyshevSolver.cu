@@ -20,7 +20,7 @@
 
 //Flag used to work around incompatibilities between nlohmann::json and CUDA.
 //This disables code in header files that depends on nlohmann::json.
-#define TBTK_DISABLE_NLOHMANN_JSON
+// #define TBTK_DISABLE_NLOHMANN_JSON //TODO compiles fine without the flag?
 
 #include "TBTK/Solver/ChebyshevExpander.h"
 #include "TBTK/GPUResourceManager.h"
@@ -35,6 +35,7 @@
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/complex.h>
+#include <thrust/device_ptr.h>
 
 #include <cmath>
 
@@ -51,11 +52,11 @@ complex<double> i(0., 1.);
 
 __global__
 void extractCoefficients(
-	cuDoubleComplex*jResult,
+	complex<double>* jResult,
 	int basisSize,
-	cuDoubleComplex *coefficients,
+	complex<double>* coefficients,
 	int currentCoefficient,
-	int *coefficientMap,
+	int* coefficientMap,
 	int numCoefficients
 ){
 	int to = blockIdx.x*blockDim.x + threadIdx.x;
@@ -109,19 +110,20 @@ vector<
 
 	vector<vector<complex<double>>> coefficients;
 	for(unsigned int n = 0; n < to.size(); n++){
-		coefficients.push_back(vector<complex<double>>());
-		coefficients[n].reserve(numCoefficients);
-		for(int c = 0; c < numCoefficients; c++)
-			coefficients[n].push_back(0);
+		coefficients.push_back(vector<complex<double>>(numCoefficients,0));
+		// coefficients[n].reserve(numCoefficients);
+		// numCoefficients.fill
+		// for(int c = 0; c < numCoefficients; c++)
+		// 	coefficients[n].push_back(0);
 	}
 
 	const HoppingAmplitudeSet &hoppingAmplitudeSet
 		= getModel().getHoppingAmplitudeSet();
 
 	int fromBasisIndex = hoppingAmplitudeSet.getBasisIndex(from);
-	int *coefficientMap = new int[hoppingAmplitudeSet.getBasisSize()];
-	for(int n = 0; n < hoppingAmplitudeSet.getBasisSize(); n++)
-		coefficientMap[n] = -1;
+	thrust::host_vector<int> coefficientMap(hoppingAmplitudeSet.getBasisSize(), -1);
+	// for(int n = 0; n < hoppingAmplitudeSet.getBasisSize(); n++)
+	// 	coefficientMap[n] = -1;
 	for(int n = 0; n < (int)to.size(); n++){
 		coefficientMap[
 			hoppingAmplitudeSet.getBasisIndex(to.at(n))
@@ -160,26 +162,6 @@ vector<
 	const unsigned int *csrRowPointers = sparseMatrix.getCSRRowPointers();
 	const unsigned int *csrColumns = sparseMatrix.getCSRColumns();
 	const complex<double> *csrValues = sparseMatrix.getCSRValues();
-	// int *cooHARowIndices_host = new int[numHoppingAmplitudes];
-	// int *cooHAColIndices_host = new int[numHoppingAmplitudes];
-	// complex<double> *cooHAValues_host = new complex<double>[ //TODO Why was the coo format used?
-	// 	numHoppingAmplitudes
-	// ];
-	// for(
-	// 	unsigned int row = 0;
-	// 	row < sparseMatrix.getNumRows();
-	// 	row++
-	// ){
-	// 	for(
-	// 		unsigned int n = csrRowPointers[row];
-	// 		n < csrRowPointers[row+1];
-	// 		n++
-	// 	){
-	// 		cooHARowIndices_host[n] = row;
-	// 		cooHAColIndices_host[n] = csrColumns[n];
-	// 		cooHAValues_host[n] = csrValues[n];
-	// 	}
-	// }
 
 	// calculate total memory requirement for the device
 	int totalMemoryRequirement
@@ -228,90 +210,28 @@ vector<
 	thrust::device_vector<int> csrColumns_device(csrColumns, csrColumns + numHoppingAmplitudes);
 	const thrust::device_vector<complex<double>> csrValues_device(csrValues, csrValues + numHoppingAmplitudes);
 
-	// int *cooHAColIndices_device;
-	// complex<double> *cooHAValues_device;
-	complex<double> *coefficients_device;
-	int *coefficientMap_device;
+	thrust::device_vector<complex<double>> coefficients_device(to.size()*numCoefficients);
+	thrust::device_vector<int> coefficientMap_device(basisSize);
 	complex<double> *damping_device = NULL;
 
-
-
 	// TBTKAssert(
 	// 	cudaMalloc(
-	// 		(void**)&jIn1_device,
-	// 		hoppingAmplitudeSet.getBasisSize()*sizeof(
-	// 			complex<double>
-	// 		)
+	// 		(void**)&coefficients_device,
+	// 		to.size()*numCoefficients*sizeof(complex<double>)
 	// 	) == cudaSuccess,
 	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA malloc error while allocating jIn1_device.",
+	// 	"CUDA malloc error while allocating coefficients_device.",
 	// 	""
 	// );
 	// TBTKAssert(
 	// 	cudaMalloc(
-	// 		(void**)&jIn2_device,
-	// 		hoppingAmplitudeSet.getBasisSize()*sizeof(
-	// 			complex<double>
-	// 		)
+	// 		(void**)&coefficientMap_device,
+	// 		hoppingAmplitudeSet.getBasisSize()*sizeof(int)
 	// 	) == cudaSuccess,
 	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA malloc error while allocating jIn2_device.",
+	// 	"CUDA malloc error while allocating coefficientMap_device.",
 	// 	""
 	// );
-	// TBTKAssert(
-	// 	cudaMalloc(
-	// 		(void**)&cooHARowIndices_device,
-	// 		numHoppingAmplitudes*sizeof(int)
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA malloc error while allocating cooHARowIndices_device.",
-	// 	""
-	// );
-	// TBTKAssert(
-	// 	cudaMalloc(
-	// 		(void**)&csrHARowIndices_device,
-	// 		(hoppingAmplitudeSet.getBasisSize()+1)*sizeof(int)
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA malloc error while allocating csrHARowIndices_device.",
-	// 	""
-	// );
-	// TBTKAssert(
-	// 	cudaMalloc(
-	// 		(void**)&cooHAColIndices_device,
-	// 		numHoppingAmplitudes*sizeof(int)
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA malloc error while allocating cooHAColIndices_device.",
-	// 	""
-	// );
-	// TBTKAssert(
-	// 	cudaMalloc(
-	// 		(void**)&cooHAValues_device,
-	// 		numHoppingAmplitudes*sizeof(complex<double>)
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA malloc error while allocating cooHAValues_device.",
-	// 	""
-	// )
-	TBTKAssert(
-		cudaMalloc(
-			(void**)&coefficients_device,
-			to.size()*numCoefficients*sizeof(complex<double>)
-		) == cudaSuccess,
-		"ChebyshevExpander::calculateCoefficientsGPU()",
-		"CUDA malloc error while allocating coefficients_device.",
-		""
-	);
-	TBTKAssert(
-		cudaMalloc(
-			(void**)&coefficientMap_device,
-			hoppingAmplitudeSet.getBasisSize()*sizeof(int)
-		) == cudaSuccess,
-		"ChebyshevExpander::calculateCoefficientsGPU()",
-		"CUDA malloc error while allocating coefficientMap_device.",
-		""
-	);
 	if(damping != NULL){
 		TBTKAssert(
 			cudaMalloc(
@@ -325,78 +245,22 @@ vector<
 			""
 		);
 	}
-
-	// TBTKAssert(
-	// 	cudaMemcpy(
-	// 		jIn1_device,
-	// 		jIn1,
-	// 		hoppingAmplitudeSet.getBasisSize()*sizeof(
-	// 			complex<double>
-	// 		),
-	// 		cudaMemcpyHostToDevice
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA memcpy error while copying jIn1.",
-	// 	""
-	// );
-	// TBTKAssert(
-	// 	cudaMemcpy(
-	// 		jIn2_device,
-	// 		jIn2,
-	// 		hoppingAmplitudeSet.getBasisSize()*sizeof(
-	// 			complex<double>
-	// 		),
-	// 		cudaMemcpyHostToDevice
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA memcpy error while copying jIn2.",
-	// 	""
-	// );
-	// TBTKAssert(
-	// 	cudaMemcpy(
-	// 		cooHARowIndices_device,
-	// 		cooHARowIndices_host,
-	// 		numHoppingAmplitudes*sizeof(int),
-	// 		cudaMemcpyHostToDevice
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA memcpy error while copying cooHARowIndices.",
-	// 	""
-	// );
-	// TBTKAssert(
-	// 	cudaMemcpy(
-	// 		cooHAColIndices_device,
-	// 		cooHAColIndices_host,
-	// 		numHoppingAmplitudes*sizeof(int),
-	// 		cudaMemcpyHostToDevice
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficients()",
-	// 	"CUDA memcpy error while copying cooHAColIndices.",
-	// 	""
-	// )
-	// TBTKAssert(
-	// 	cudaMemcpy(
-	// 		cooHAValues_device,
-	// 		cooHAValues_host,
-	// 		numHoppingAmplitudes*sizeof(complex<double>),
-	// 		cudaMemcpyHostToDevice
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA memcpy error while copying cooHAValues.",
-	// 	""
-	// );
 	for(unsigned int n = 0; n < to.size(); n++){
-		TBTKAssert(
-			cudaMemcpy(
-				coefficients_device + numCoefficients*n,
-				coefficients[n].data(),
-				numCoefficients*sizeof(complex<double>),
-				cudaMemcpyHostToDevice
-			) == cudaSuccess,
-			"ChebyshevExpander::calculateCoefficients()",
-			"CUDA memcpy error while copying coefficients.",
-			""
-		);
+		auto startDataItr = coefficients_device.begin();
+		thrust::copy(coefficients_device.begin() + (n*numCoefficients),
+					 coefficients_device.begin() + (n*numCoefficients + 1),
+					 coefficients[n].begin());
+		// TBTKAssert(
+		// 	cudaMemcpy(
+		// 		coefficients_device + numCoefficients*n,
+		// 		coefficients[n].data(),
+		// 		numCoefficients*sizeof(complex<double>),
+		// 		cudaMemcpyHostToDevice
+		// 	) == cudaSuccess,
+		// 	"ChebyshevExpander::calculateCoefficients()",
+		// 	"CUDA memcpy error while copying coefficients.",
+		// 	""
+		// );
 	}
 /*	TBTKAssert(
 		cudaMemcpy(
@@ -409,17 +273,18 @@ vector<
 		"CUDA memcpy error while copying coefficients.",
 		""
 	);*/
-	TBTKAssert(
-		cudaMemcpy(
-			coefficientMap_device,
-			coefficientMap,
-			hoppingAmplitudeSet.getBasisSize()*sizeof(int),
-			cudaMemcpyHostToDevice
-		) == cudaSuccess,
-		"ChebyshevExpander::calculateCoefficientsGPU()",
-		"CUDA memcpy error while copying coefficientMap.",
-		""
-	);
+	coefficientMap_device = coefficientMap;
+	// TBTKAssert(
+	// 	cudaMemcpy(
+	// 		coefficientMap_device,
+	// 		coefficientMap,
+	// 		hoppingAmplitudeSet.getBasisSize()*sizeof(int),
+	// 		cudaMemcpyHostToDevice
+	// 	) == cudaSuccess,
+	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
+	// 	"CUDA memcpy error while copying coefficientMap.",
+	// 	""
+	// );
 	if(damping != NULL){
 		TBTKAssert(
 			cudaMemcpy(
@@ -435,7 +300,7 @@ vector<
 			""
 		);
 	}
-
+	
 	cusparseHandle_t handle = NULL;
 	TBTKAssert(
 		cusparseCreate(&handle) == CUSPARSE_STATUS_SUCCESS,
@@ -547,21 +412,29 @@ vector<
 	);
 
 	extractCoefficients <<< num_blocks, block_size >>> (
-		(cuDoubleComplex*)
 		thrust::raw_pointer_cast(jIn2_device.data()),
-		hoppingAmplitudeSet.getBasisSize(),
-		(cuDoubleComplex*)coefficients_device,
+		basisSize,
+		thrust::raw_pointer_cast(coefficients_device.data()),
 		1,
-		coefficientMap_device,
+		thrust::raw_pointer_cast(coefficientMap_device.data()),
 		numCoefficients
 	);
 	//Switch the order of the vectors jIn1 <-> jIn2
 	cusparseDnVecDescr_t *vecJIn1_ptr = &vecJIn1;
 	cusparseDnVecDescr_t *vecJIn2_ptr = &vecJIn2;
 	cusparseDnVecDescr_t *vecJTemp_ptr = NULL;
+	thrust::device_vector<complex<double>> jResult_device(basisSize);
+	// thrust::device_ptr<complex<double>> jIn1_device_ptr = jIn1_device.data();
+	// thrust::device_ptr<complex<double>> jIn2_device_ptr = jIn2_device.data();
+	// thrust::device_ptr<complex<double>> jTemp_device_ptr = NULL;
+	
 	vecJTemp_ptr = vecJIn2_ptr;
 	vecJIn2_ptr = vecJIn1_ptr;
 	vecJIn1_ptr = vecJTemp_ptr;
+
+	// jTemp_device_ptr = jIn2_device_ptr;
+	// jIn2_device_ptr = jIn1_device_ptr;
+	// jIn1_device_ptr = jTemp_device_ptr;
 
 	if(getGlobalVerbose() && getVerbose())
 		Streams::out << "\tProgress (100 coefficients per dot): ";
@@ -583,20 +456,31 @@ vector<
 			"Matrix-vector multiplication error.",
 			""
 		);
-
+		TBTKAssert(
+			cusparseDnVecGetValues(
+				vecJIn2,
+				(void**) thrust::raw_pointer_cast(jResult_device.data())
+			) == CUSPARSE_STATUS_SUCCESS,
+			"ChebyshevExpander::calculateCoefficentsGPU()",
+			"Error in cusparseDnVecGetValues multiplication error.",
+			"Error while retrieving jResult."
+		);
 		extractCoefficients <<< num_blocks, block_size >>> (
-			(cuDoubleComplex*)
-			thrust::raw_pointer_cast(jIn2_device.data()),
-			hoppingAmplitudeSet.getBasisSize(),
-			(cuDoubleComplex*)coefficients_device,
+			thrust::raw_pointer_cast(jResult_device.data()),
+			basisSize,
+			thrust::raw_pointer_cast(coefficients_device.data()),
 			n,
-			coefficientMap_device,
+			thrust::raw_pointer_cast(coefficientMap_device.data()),
 			numCoefficients
 		);
 
 		vecJTemp_ptr = vecJIn2_ptr;
 		vecJIn2_ptr = vecJIn1_ptr;
 		vecJIn1_ptr = vecJTemp_ptr;
+
+		// jTemp_device_ptr = jIn2_device_ptr;
+		// jIn2_device_ptr = jIn1_device_ptr;
+		// jIn1_device_ptr = jTemp_device_ptr;
 
 		if(getGlobalVerbose() && getVerbose()){
 			if(n%100 == 0)
@@ -605,22 +489,54 @@ vector<
 				Streams::out << " " << flush;
 		}
 	}
+	//TODO make sure device has finished with extractCoefficients, otherwise memcpy fails
 	if(getGlobalVerbose() && getVerbose())
 		Streams::out << "\n";
+	cudaDeviceSynchronize(); //Just to make sure the device finishes all tasks
+	// vector<complex<double>*> coefficients_temp(to.size());
+	// for(unsigned int n = 0; n < to.size(); n++){
+	// 	coefficients_temp[n] = new(complex<double>[numCoefficients]);
+	// }
+	// for(unsigned int n = 0; n < to.size(); n++){
+		// cudaError_t status = cudaMemcpy( //TODO Allocation fails here
+		// 	coefficients_temp[n],
+		// 	coefficients_device + numCoefficients*n,
+		// 	numCoefficients*sizeof(complex<double>),
+		// 	cudaMemcpyDeviceToHost
+		// );
+		// if( status != cudaSuccess){
+		// 	Streams::err << "ChebyshevExpander::calculateCoefficientsGPU()" << endl
+		// 	<< "CUDA memcpy error while copying coefficients." << endl
+		// 	<< "CUDA API failed with error: " << cudaGetErrorString(status) << endl;
+		// 	exit(-1);
+		// }
+		
+		for(unsigned int n = 0; n < to.size(); n++){
+			thrust::copy(coefficients[n].begin(), 
+			coefficients[n].end(), 
+			coefficients_device.begin() + numCoefficients*n);
+			// TBTKAssert(
+			// 	cudaMemcpy(
+			// 		coefficients[n].data(),
+			// 		coefficients_device + numCoefficients*n,
+			// 		numCoefficients*sizeof(complex<double>),
+			// 		cudaMemcpyDeviceToHost
+			// 	) == cudaSuccess,
+			// 	"ChebyshevExpander::calculateCoefficients()",
+			// 	"CUDA memcpy error while copying coefficients.",
+			// 	""
+			// );
+		}
+		// CHECK_CUDA(
+		// 	cudaMemcpy(
+		// 		coefficients[n].data(),
+		// 		coefficients_device + numCoefficients*n,
+		// 		numCoefficients*sizeof(complex<double>),
+		// 		cudaMemcpyDeviceToHost
+		// 	)
+		// )
 
-	for(unsigned int n = 0; n < to.size(); n++){
-		TBTKAssert(
-			cudaMemcpy(
-				coefficients[n].data(),
-				coefficients_device + numCoefficients*n,
-				numCoefficients*sizeof(complex<double>),
-				cudaMemcpyDeviceToHost
-			) == cudaSuccess,
-			"ChebyshevExpander::calculateCoefficientsGPU()",
-			"CUDA memcpy error while copying coefficients.",
-			""
-		);
-	}
+	// }
 /*	TBTKAssert(
 		cudaMemcpy(
 			coefficients.data(),
@@ -676,21 +592,8 @@ vector<
     )
 	handle = NULL;
 
-	// delete [] jIn1;
-	// delete [] jIn2;
-	// delete [] coefficientMap;
-	// delete [] cooHARowIndices_host;
-	// delete [] cooHAColIndices_host;
-	// delete [] cooHAValues_host;
-
-	// cudaFree(jIn1_device);
-	// cudaFree(jIn2_device);
-	// cudaFree(cooHARowIndices_device);
-	// cudaFree(csrHARowIndices_device);
-	// cudaFree(cooHAColIndices_device);
-	// cudaFree(cooHAValues_device);
-	cudaFree(coefficients_device);
-	cudaFree(coefficientMap_device);
+	// cudaFree(coefficients_device);
+	// cudaFree(coefficientMap_device);
 	if(damping != NULL)
 		cudaFree(damping_device);
 
