@@ -64,7 +64,7 @@ void extractCoefficients(
 		coefficients[
 			coefficientMap[to]*numCoefficients + currentCoefficient
 		] = jResult[to];
-	}
+    }
 }
 
 vector<complex<double>> ChebyshevExpander::calculateCoefficientsGPU(
@@ -111,10 +111,6 @@ vector<
 	vector<vector<complex<double>>> coefficients;
 	for(unsigned int n = 0; n < to.size(); n++){
 		coefficients.push_back(vector<complex<double>>(numCoefficients,0));
-		// coefficients[n].reserve(numCoefficients);
-		// numCoefficients.fill
-		// for(int c = 0; c < numCoefficients; c++)
-		// 	coefficients[n].push_back(0);
 	}
 
 	const HoppingAmplitudeSet &hoppingAmplitudeSet
@@ -122,13 +118,16 @@ vector<
 
 	int fromBasisIndex = hoppingAmplitudeSet.getBasisIndex(from);
 	thrust::host_vector<int> coefficientMap(hoppingAmplitudeSet.getBasisSize(), -1);
-	// for(int n = 0; n < hoppingAmplitudeSet.getBasisSize(); n++)
-	// 	coefficientMap[n] = -1;
+
 	for(int n = 0; n < (int)to.size(); n++){
 		coefficientMap[
 			hoppingAmplitudeSet.getBasisIndex(to.at(n))
 		] = n;
 	}
+
+	//TODO remove when done
+	cout << hoppingAmplitudeSet.getBasisIndex(to.at(0)) << endl;
+	cout << hoppingAmplitudeSet.getBasisIndex(from) << endl;
 
 	if(getGlobalVerbose() && getVerbose()){
 		Streams::out << "ChebyshevExpander::calculateCoefficientsGPU\n";
@@ -214,24 +213,6 @@ vector<
 	thrust::device_vector<int> coefficientMap_device(basisSize);
 	complex<double> *damping_device = NULL;
 
-	// TBTKAssert(
-	// 	cudaMalloc(
-	// 		(void**)&coefficients_device,
-	// 		to.size()*numCoefficients*sizeof(complex<double>)
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA malloc error while allocating coefficients_device.",
-	// 	""
-	// );
-	// TBTKAssert(
-	// 	cudaMalloc(
-	// 		(void**)&coefficientMap_device,
-	// 		hoppingAmplitudeSet.getBasisSize()*sizeof(int)
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA malloc error while allocating coefficientMap_device.",
-	// 	""
-	// );
 	if(damping != NULL){
 		TBTKAssert(
 			cudaMalloc(
@@ -246,45 +227,10 @@ vector<
 		);
 	}
 	for(unsigned int n = 0; n < to.size(); n++){
-		auto startDataItr = coefficients_device.begin();
 		thrust::copy(coefficients_device.begin() + (n*numCoefficients),
 					 coefficients_device.begin() + (n*numCoefficients + 1),
 					 coefficients[n].begin());
-		// TBTKAssert(
-		// 	cudaMemcpy(
-		// 		coefficients_device + numCoefficients*n,
-		// 		coefficients[n].data(),
-		// 		numCoefficients*sizeof(complex<double>),
-		// 		cudaMemcpyHostToDevice
-		// 	) == cudaSuccess,
-		// 	"ChebyshevExpander::calculateCoefficients()",
-		// 	"CUDA memcpy error while copying coefficients.",
-		// 	""
-		// );
 	}
-/*	TBTKAssert(
-		cudaMemcpy(
-			coefficients_device,
-			coefficients.data(),
-			to.size()*numCoefficients*sizeof(complex<double>),
-			cudaMemcpyHostToDevice
-		) == cudaSuccess,
-		"ChebyshevExpander::calculateCoefficients()",
-		"CUDA memcpy error while copying coefficients.",
-		""
-	);*/
-	coefficientMap_device = coefficientMap;
-	// TBTKAssert(
-	// 	cudaMemcpy(
-	// 		coefficientMap_device,
-	// 		coefficientMap,
-	// 		hoppingAmplitudeSet.getBasisSize()*sizeof(int),
-	// 		cudaMemcpyHostToDevice
-	// 	) == cudaSuccess,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"CUDA memcpy error while copying coefficientMap.",
-	// 	""
-	// );
 	if(damping != NULL){
 		TBTKAssert(
 			cudaMemcpy(
@@ -300,7 +246,7 @@ vector<
 			""
 		);
 	}
-	
+
 	cusparseHandle_t handle = NULL;
 	TBTKAssert(
 		cusparseCreate(&handle) == CUSPARSE_STATUS_SUCCESS,
@@ -309,59 +255,37 @@ vector<
 		""
 	);
 
-	// cusparseMatDescr_t descr = NULL;
-	// TBTKAssert(
-	// 	cusparseCreateMatDescr(&descr) == CUSPARSE_STATUS_SUCCESS,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"cuSPARSE create matrix descriptor error.",
-	// 	""
-	// );
-
 	//Create a sparse matrix on the device
     cusparseSpMatDescr_t descr;
     TBTKAssert( cusparseCreateCsr(&descr, numRows, numRows,
 		numHoppingAmplitudes,
-		thrust::raw_pointer_cast(csrHARowIndices_device.data()), 
-		thrust::raw_pointer_cast(csrColumns_device.data()), 
-		(void*)thrust::raw_pointer_cast(csrValues_device.data()),
+		csrHARowIndices_device.data().get(), 
+		csrColumns_device.data().get(), 
+		(void*) csrValues_device.data().get(),
 					  CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
 					  CUSPARSE_INDEX_BASE_ZERO, CUDA_C_64F)
 				== CUSPARSE_STATUS_SUCCESS,
 		"EPOCHSolver::calculateExpectationValueGPU",
 		"Error in cusparseCreateCsr.",
 		""
-		)
-
-	// TBTKAssert(
-	// 	cusparseXcoo2csr(
-	// 		handle,
-	// 		cooHARowIndices_device,
-	// 		numHoppingAmplitudes,
-	// 		hoppingAmplitudeSet.getBasisSize(),
-	// 		csrHARowIndices_device,
-	// 		CUSPARSE_INDEX_BASE_ZERO
-	// 	) == CUSPARSE_STATUS_SUCCESS,
-	// 	"ChebyshevExpander::calculateCoefficientsGPU()",
-	// 	"cuSPARSE COO to CSR error.",
-	// 	""
-	// );
+		);
 
 	//Create the dense vector objects on the device
 	cusparseDnVecDescr_t vecJIn1, vecJIn2;
 	TBTKAssert(
-		cusparseCreateDnVec(&vecJIn1, basisSize, &jIn1_device, CUDA_C_64F)
+		cusparseCreateDnVec(&vecJIn1, basisSize, jIn1_device.data().get(), CUDA_C_64F)
 		== CUSPARSE_STATUS_SUCCESS,
 		"EPOCHSolver::calculateExpectationValueGPU",
 		"Error in cusparseCreateDnVec.",
 		""
-	)
+	);
 	TBTKAssert(
-		cusparseCreateDnVec(&vecJIn2, basisSize, &jIn2_device, CUDA_C_64F)
+		cusparseCreateDnVec(&vecJIn2, basisSize, jIn2_device.data().get(), CUDA_C_64F)
 		== CUSPARSE_STATUS_SUCCESS,
 		"EPOCHSolver::calculateExpectationValueGPU",
 		"Error in cusparseCreateDnVec.",
 		""
-	)
+	);
 
 
 
@@ -373,6 +297,14 @@ vector<
 		Streams::out << "\tCUDA Block size: " << block_size << "\n";
 		Streams::out << "\tCUDA Num blocks: " << num_blocks << "\n";
 	}
+	extractCoefficients <<< num_blocks, block_size >>> ( //TODO this was not in the original code?
+		jIn1_device.data().get(),
+		basisSize,
+		coefficients_device.data().get(),
+		0,
+		coefficientMap_device.data().get(),
+		numCoefficients
+	);
 
 
 	complex<double> multiplier = one/scaleFactor;
@@ -382,20 +314,20 @@ vector<
     TBTKAssert( 
 		cusparseSpMV_bufferSize(
 			handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
-			&multiplier, descr, vecJIn1, &minus_one, vecJIn2, CUDA_C_64F,
-			CUSPARSE_SPMV_ALG_DEFAULT, &bufferSize) 
+			&multiplier, descr, vecJIn1, &zero, vecJIn2, CUDA_C_64F,
+			CUSPARSE_SPMV_CSR_ALG2, &bufferSize) 
 		== CUSPARSE_STATUS_SUCCESS,
 		"EPOCHSolver::calculateExpectationValueGPU",
 		"Error in cusparseSpMV_bufferSize.",
 		"Error occured while allocating extra buffer in device memory"
-	)
+	);
     TBTKAssert(
 		cudaMalloc(&buffer_device, bufferSize)
 		== cudaSuccess,
 	   "EPOCHSolver::calculateExpectationValueGPU",
 	   "Error in cudaMalloc.",
 	   "Error occured while allocating extra buffer in device memory"
-   	)
+   	);
 	TBTKAssert(
 		cusparseSpMV(
 			handle,
@@ -403,7 +335,7 @@ vector<
 			&multiplier, descr, vecJIn1, 
 			&zero, vecJIn2,
 			CUDA_C_64F,
-			CUSPARSE_SPMV_ALG_DEFAULT, 
+			CUSPARSE_SPMV_CSR_ALG2, 
 			buffer_device
 		) == CUSPARSE_STATUS_SUCCESS,
 		"ChebyshevExpander::calculateCoefficentsGPU()",
@@ -411,30 +343,46 @@ vector<
 		""
 	);
 
+	size_t bufferSizeSecondOperation = 0;
+    TBTKAssert( 
+		cusparseSpMV_bufferSize(
+			handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
+			&multiplier, descr, vecJIn1, &minus_one, vecJIn2, CUDA_C_64F,
+			CUSPARSE_SPMV_CSR_ALG2, &bufferSizeSecondOperation) 
+		== CUSPARSE_STATUS_SUCCESS,
+		"EPOCHSolver::calculateExpectationValueGPU",
+		"Error in cusparseSpMV_bufferSize.",
+		"Error occured while allocating extra buffer in device memory"
+	);
+	TBTKAssert(
+		bufferSizeSecondOperation <= bufferSize,
+		"EPOCHSolver::calculateExpectationValueGPU",
+		"Error in Allocating buffer for SPMV.",
+		"Buffer memory requirements changed."
+	);
 	extractCoefficients <<< num_blocks, block_size >>> (
-		thrust::raw_pointer_cast(jIn2_device.data()),
+		jIn2_device.data().get(),
 		basisSize,
-		thrust::raw_pointer_cast(coefficients_device.data()),
+		coefficients_device.data().get(),
 		1,
-		thrust::raw_pointer_cast(coefficientMap_device.data()),
+		coefficientMap_device.data().get(),
 		numCoefficients
 	);
 	//Switch the order of the vectors jIn1 <-> jIn2
 	cusparseDnVecDescr_t *vecJIn1_ptr = &vecJIn1;
 	cusparseDnVecDescr_t *vecJIn2_ptr = &vecJIn2;
 	cusparseDnVecDescr_t *vecJTemp_ptr = NULL;
-	thrust::device_vector<complex<double>> jResult_device(basisSize);
-	// thrust::device_ptr<complex<double>> jIn1_device_ptr = jIn1_device.data();
-	// thrust::device_ptr<complex<double>> jIn2_device_ptr = jIn2_device.data();
-	// thrust::device_ptr<complex<double>> jTemp_device_ptr = NULL;
+	thrust::device_ptr<complex<double>> jIn1_device_ptr = jIn1_device.data();
+	thrust::device_ptr<complex<double>> jIn2_device_ptr = jIn2_device.data();
+	thrust::device_ptr<complex<double>> jTemp_device_ptr = NULL;
 	
 	vecJTemp_ptr = vecJIn2_ptr;
 	vecJIn2_ptr = vecJIn1_ptr;
 	vecJIn1_ptr = vecJTemp_ptr;
 
-	// jTemp_device_ptr = jIn2_device_ptr;
-	// jIn2_device_ptr = jIn1_device_ptr;
-	// jIn1_device_ptr = jTemp_device_ptr;
+	jTemp_device_ptr = jIn2_device_ptr;
+	jIn2_device_ptr = jIn1_device_ptr;
+	jIn1_device_ptr = jTemp_device_ptr;
 
 	if(getGlobalVerbose() && getVerbose())
 		Streams::out << "\tProgress (100 coefficients per dot): ";
@@ -446,41 +394,31 @@ vector<
 			cusparseSpMV(
 				handle,
 				CUSPARSE_OPERATION_NON_TRANSPOSE,
-				&multiplier, descr, vecJIn1, 
-				&minus_one, vecJIn2,
+				&multiplier, descr, *vecJIn1_ptr, 
+				&minus_one, *vecJIn2_ptr,
 				CUDA_C_64F,
-				CUSPARSE_SPMV_ALG_DEFAULT, 
+				CUSPARSE_SPMV_CSR_ALG2, 
 				buffer_device
 			) == CUSPARSE_STATUS_SUCCESS,
 			"ChebyshevExpander::calculateCoefficentsGPU()",
 			"Matrix-vector multiplication error.",
 			""
 		);
-		TBTKAssert(
-			cusparseDnVecGetValues(
-				vecJIn2,
-				(void**) thrust::raw_pointer_cast(jResult_device.data())
-			) == CUSPARSE_STATUS_SUCCESS,
-			"ChebyshevExpander::calculateCoefficentsGPU()",
-			"Error in cusparseDnVecGetValues multiplication error.",
-			"Error while retrieving jResult."
-		);
 		extractCoefficients <<< num_blocks, block_size >>> (
-			thrust::raw_pointer_cast(jResult_device.data()),
+			jIn2_device_ptr.get(),
 			basisSize,
-			thrust::raw_pointer_cast(coefficients_device.data()),
+			coefficients_device.data().get(),
 			n,
-			thrust::raw_pointer_cast(coefficientMap_device.data()),
+			coefficientMap_device.data().get(),
 			numCoefficients
 		);
-
 		vecJTemp_ptr = vecJIn2_ptr;
 		vecJIn2_ptr = vecJIn1_ptr;
 		vecJIn1_ptr = vecJTemp_ptr;
 
-		// jTemp_device_ptr = jIn2_device_ptr;
-		// jIn2_device_ptr = jIn1_device_ptr;
-		// jIn1_device_ptr = jTemp_device_ptr;
+		jTemp_device_ptr = jIn2_device_ptr;
+		jIn2_device_ptr = jIn1_device_ptr;
+		jIn1_device_ptr = jTemp_device_ptr;
 
 		if(getGlobalVerbose() && getVerbose()){
 			if(n%100 == 0)
@@ -489,66 +427,19 @@ vector<
 				Streams::out << " " << flush;
 		}
 	}
-	//TODO make sure device has finished with extractCoefficients, otherwise memcpy fails
 	if(getGlobalVerbose() && getVerbose())
 		Streams::out << "\n";
-	cudaDeviceSynchronize(); //Just to make sure the device finishes all tasks
-	// vector<complex<double>*> coefficients_temp(to.size());
-	// for(unsigned int n = 0; n < to.size(); n++){
-	// 	coefficients_temp[n] = new(complex<double>[numCoefficients]);
-	// }
-	// for(unsigned int n = 0; n < to.size(); n++){
-		// cudaError_t status = cudaMemcpy( //TODO Allocation fails here
-		// 	coefficients_temp[n],
-		// 	coefficients_device + numCoefficients*n,
-		// 	numCoefficients*sizeof(complex<double>),
-		// 	cudaMemcpyDeviceToHost
-		// );
-		// if( status != cudaSuccess){
-		// 	Streams::err << "ChebyshevExpander::calculateCoefficientsGPU()" << endl
-		// 	<< "CUDA memcpy error while copying coefficients." << endl
-		// 	<< "CUDA API failed with error: " << cudaGetErrorString(status) << endl;
-		// 	exit(-1);
-		// }
-		
-		for(unsigned int n = 0; n < to.size(); n++){
-			thrust::copy(coefficients[n].begin(), 
-			coefficients[n].end(), 
-			coefficients_device.begin() + numCoefficients*n);
-			// TBTKAssert(
-			// 	cudaMemcpy(
-			// 		coefficients[n].data(),
-			// 		coefficients_device + numCoefficients*n,
-			// 		numCoefficients*sizeof(complex<double>),
-			// 		cudaMemcpyDeviceToHost
-			// 	) == cudaSuccess,
-			// 	"ChebyshevExpander::calculateCoefficients()",
-			// 	"CUDA memcpy error while copying coefficients.",
-			// 	""
-			// );
+	for(unsigned int n = 0; n < to.size(); n++){
+		thrust::copy(coefficients[n].begin(), 
+		coefficients[n].end(), 
+		coefficients_device.begin() + numCoefficients*n);
+	}
+	for(int n = 0; n < numCoefficients; n++){ //TODO remove, this test is for testing the memcpy above
+		if(abs((complex<double>)coefficients_device[n] - (complex<double>)coefficients[0][n]) > 1E-10){
+			cerr << "not passed" << endl;
+			break;
 		}
-		// CHECK_CUDA(
-		// 	cudaMemcpy(
-		// 		coefficients[n].data(),
-		// 		coefficients_device + numCoefficients*n,
-		// 		numCoefficients*sizeof(complex<double>),
-		// 		cudaMemcpyDeviceToHost
-		// 	)
-		// )
-
-	// }
-/*	TBTKAssert(
-		cudaMemcpy(
-			coefficients.data(),
-			coefficients_device,
-			to.size()*numCoefficients*sizeof(complex<double>),
-			cudaMemcpyDeviceToHost
-		) == cudaSuccess,
-		"ChebyshevExpander::calculateCoefficientsGPU()",
-		"CUDA memcpy error while copying coefficients.",
-		""
-	);*/
-
+	}
 
     TBTKAssert(
 		cusparseDestroySpMat(descr
@@ -592,8 +483,6 @@ vector<
     )
 	handle = NULL;
 
-	// cudaFree(coefficients_device);
-	// cudaFree(coefficientMap_device);
 	if(damping != NULL)
 		cudaFree(damping_device);
 
@@ -616,6 +505,7 @@ vector<
 
 	return coefficients;
 }
+
 
 __global__
 void calculateGreensFunction(
