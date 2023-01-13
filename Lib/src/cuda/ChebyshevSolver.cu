@@ -52,11 +52,11 @@ complex<double> i(0., 1.);
 
 __global__
 void extractCoefficients(
-	complex<double>* jResult,
+	cuDoubleComplex *jResult,
 	int basisSize,
-	complex<double>* coefficients,
+	cuDoubleComplex *coefficients,
 	int currentCoefficient,
-	int* coefficientMap,
+	int *coefficientMap,
 	int numCoefficients
 ){
 	int to = blockIdx.x*blockDim.x + threadIdx.x;
@@ -64,8 +64,26 @@ void extractCoefficients(
 		coefficients[
 			coefficientMap[to]*numCoefficients + currentCoefficient
 		] = jResult[to];
-    }
+	}
 }
+
+__global__
+void saveCoefficients(
+	complex<double>* jResult,
+	complex<double>* coefficients,
+	int currentCoefficient,
+	int* coefficientMap,
+	int numParallelCoefficients,
+	int numCoefficients
+){
+	int to = blockIdx.x*blockDim.x + threadIdx.x;
+	if(to >= numParallelCoefficients)
+		return;
+	int iterator = to*numCoefficients + currentCoefficient;
+	coefficients[iterator] = jResult[coefficientMap[to]];
+}
+
+
 
 vector<complex<double>> ChebyshevExpander::calculateCoefficientsGPU(
 	Index to,
@@ -117,17 +135,12 @@ vector<
 		= getModel().getHoppingAmplitudeSet();
 
 	int fromBasisIndex = hoppingAmplitudeSet.getBasisIndex(from);
-	thrust::host_vector<int> coefficientMap(hoppingAmplitudeSet.getBasisSize(), -1);
+	thrust::host_vector<int> coefficientMap(to.size());
 
 	for(int n = 0; n < (int)to.size(); n++){
-		coefficientMap[
-			hoppingAmplitudeSet.getBasisIndex(to.at(n))
-		] = n;
+		coefficientMap[n] =
+			hoppingAmplitudeSet.getBasisIndex(to.at(n));
 	}
-
-	//TODO remove when done
-	cout << hoppingAmplitudeSet.getBasisIndex(to.at(0)) << endl;
-	cout << hoppingAmplitudeSet.getBasisIndex(from) << endl;
 
 	if(getGlobalVerbose() && getVerbose()){
 		Streams::out << "ChebyshevExpander::calculateCoefficientsGPU\n";
@@ -149,9 +162,9 @@ vector<
 	//Set up initial state (|j0>)
 	jIn1[fromBasisIndex] = 1.;
 
-	for(int n = 0; n < basisSize; n++)
-		if(coefficientMap[n] != -1)
-			coefficients[coefficientMap[n]][0] = jIn1[n];
+
+	for(int n = 0; n < (int)to.size(); n++)
+			coefficients[0][n] = jIn1[coefficientMap[n]];
 //			coefficients[coefficientMap[n]*numCoefficients] = jIn1[n];
 
 	SparseMatrix<complex<double>> sparseMatrix = hoppingAmplitudeSet.getSparseMatrix();
@@ -189,7 +202,7 @@ vector<
 	if(getGlobalVerbose() && getVerbose()){
 		Streams::out << "\tCUDA memory requirement: ";
 		if(totalMemoryRequirement < 1024){
-			Streams::out << totalMemoryRequirement/1024 << "B\n";
+			Streams::out << totalMemoryRequirement << "B\n";
 		}
 		else if(totalMemoryRequirement < 1024*1024){
 			Streams::out << totalMemoryRequirement/1024 << "KB\n";
@@ -209,8 +222,9 @@ vector<
 	thrust::device_vector<int> csrColumns_device(csrColumns, csrColumns + numHoppingAmplitudes);
 	const thrust::device_vector<complex<double>> csrValues_device(csrValues, csrValues + numHoppingAmplitudes);
 
+	//The device coefficients are stored in a flattened array as complare to the host coefficients
 	thrust::device_vector<complex<double>> coefficients_device(to.size()*numCoefficients);
-	thrust::device_vector<int> coefficientMap_device(basisSize);
+	thrust::device_vector<int> coefficientMap_device = coefficientMap;
 	complex<double> *damping_device = NULL;
 
 	if(damping != NULL){
@@ -226,11 +240,14 @@ vector<
 			""
 		);
 	}
-	for(unsigned int n = 0; n < to.size(); n++){
-		thrust::copy(coefficients_device.begin() + (n*numCoefficients),
-					 coefficients_device.begin() + (n*numCoefficients + 1),
-					 coefficients[n].begin());
+	//Only the zeroth coefficients have been calculated, so they are copied to the device
+	for(int n = 0; n < (int)to.size(); n++){
+		thrust::copy(coefficients[n].begin(),
+		coefficients[n].begin() + 1,
+		coefficients_device.begin() + n*numCoefficients
+		);
 	}
+
 	if(damping != NULL){
 		TBTKAssert(
 			cudaMemcpy(
@@ -297,14 +314,6 @@ vector<
 		Streams::out << "\tCUDA Block size: " << block_size << "\n";
 		Streams::out << "\tCUDA Num blocks: " << num_blocks << "\n";
 	}
-	extractCoefficients <<< num_blocks, block_size >>> ( //TODO this was not in the original code?
-		jIn1_device.data().get(),
-		basisSize,
-		coefficients_device.data().get(),
-		0,
-		coefficientMap_device.data().get(),
-		numCoefficients
-	);
 
 
 	complex<double> multiplier = one/scaleFactor;
@@ -360,12 +369,12 @@ vector<
 		"Error in Allocating buffer for SPMV.",
 		"Buffer memory requirements changed."
 	);
-	extractCoefficients <<< num_blocks, block_size >>> (
+	saveCoefficients <<< num_blocks, block_size >>> (
 		jIn2_device.data().get(),
-		basisSize,
 		coefficients_device.data().get(),
 		1,
 		coefficientMap_device.data().get(),
+		to.size(),
 		numCoefficients
 	);
 	//Switch the order of the vectors jIn1 <-> jIn2
@@ -404,12 +413,12 @@ vector<
 			"Matrix-vector multiplication error.",
 			""
 		);
-		extractCoefficients <<< num_blocks, block_size >>> (
+		saveCoefficients <<< num_blocks, block_size >>> (
 			jIn2_device_ptr.get(),
-			basisSize,
 			coefficients_device.data().get(),
 			n,
 			coefficientMap_device.data().get(),
+			to.size(),
 			numCoefficients
 		);
 		vecJTemp_ptr = vecJIn2_ptr;
@@ -430,15 +439,11 @@ vector<
 	if(getGlobalVerbose() && getVerbose())
 		Streams::out << "\n";
 	for(unsigned int n = 0; n < to.size(); n++){
-		thrust::copy(coefficients[n].begin(), 
-		coefficients[n].end(), 
-		coefficients_device.begin() + numCoefficients*n);
-	}
-	for(int n = 0; n < numCoefficients; n++){ //TODO remove, this test is for testing the memcpy above
-		if(abs((complex<double>)coefficients_device[n] - (complex<double>)coefficients[0][n]) > 1E-10){
-			cerr << "not passed" << endl;
-			break;
-		}
+		thrust::copy(
+			coefficients_device.begin() + n*numCoefficients,
+			coefficients_device.begin() + numCoefficients*(n+1),
+			coefficients[n].begin()
+		);
 	}
 
     TBTKAssert(
