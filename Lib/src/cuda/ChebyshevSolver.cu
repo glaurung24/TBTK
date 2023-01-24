@@ -50,25 +50,11 @@ complex<double> two(2., 0.);
 complex<double> zero(0., 0.);
 complex<double> i(0., 1.);
 
-__global__
-void extractCoefficients(
-	cuDoubleComplex *jResult,
-	int basisSize,
-	cuDoubleComplex *coefficients,
-	int currentCoefficient,
-	int *coefficientMap,
-	int numCoefficients
-){
-	int to = blockIdx.x*blockDim.x + threadIdx.x;
-	if(to < basisSize && coefficientMap[to] != -1){
-		coefficients[
-			coefficientMap[to]*numCoefficients + currentCoefficient
-		] = jResult[to];
-	}
-}
+
+
 
 __global__
-void saveCoefficients(
+void extractCoefficients(
 	complex<double>* jResult,
 	complex<double>* coefficients,
 	int currentCoefficient,
@@ -76,11 +62,13 @@ void saveCoefficients(
 	int numParallelCoefficients,
 	int numCoefficients
 ){
-	int to = blockIdx.x*blockDim.x + threadIdx.x;
-	if(to >= numParallelCoefficients)
-		return;
-	int iterator = to*numCoefficients + currentCoefficient;
-	coefficients[iterator] = jResult[coefficientMap[to]];
+	for (int to = blockIdx.x * blockDim.x + threadIdx.x; 
+		to < numParallelCoefficients; 
+		to += blockDim.x * gridDim.x)
+	{
+		int iterator = to*numCoefficients + currentCoefficient;
+		coefficients[iterator] = jResult[coefficientMap[to]];
+	}
 }
 
 
@@ -101,9 +89,7 @@ vector<
 	vector<Index> &to,
 	Index from
 ){
-
-	//TODO remove when done
-	complex<double> *damping = NULL;
+	complex<double> *damping = NULL; //TODO Compiler error of damping not defined without this, note that it disables some parts of the code?
 	TBTKAssert(
 		scaleFactor > 0,
 		"ChebyshevExpander::calculateCoefficientsGPU()",
@@ -165,7 +151,6 @@ vector<
 
 	for(int n = 0; n < (int)to.size(); n++)
 			coefficients[0][n] = jIn1[coefficientMap[n]];
-//			coefficients[coefficientMap[n]*numCoefficients] = jIn1[n];
 
 	SparseMatrix<complex<double>> sparseMatrix = hoppingAmplitudeSet.getSparseMatrix();
 	sparseMatrix.setStorageFormat(SparseMatrix<complex<double>>::StorageFormat::CSR);
@@ -282,7 +267,7 @@ vector<
 					  CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
 					  CUSPARSE_INDEX_BASE_ZERO, CUDA_C_64F)
 				== CUSPARSE_STATUS_SUCCESS,
-		"EPOCHSolver::calculateExpectationValueGPU",
+		"ChebyshevExpander::calculateCoefficientsGPU()",
 		"Error in cusparseCreateCsr.",
 		""
 		);
@@ -292,14 +277,14 @@ vector<
 	TBTKAssert(
 		cusparseCreateDnVec(&vecJIn1, basisSize, jIn1_device.data().get(), CUDA_C_64F)
 		== CUSPARSE_STATUS_SUCCESS,
-		"EPOCHSolver::calculateExpectationValueGPU",
+		"ChebyshevExpander::calculateCoefficientsGPU()",
 		"Error in cusparseCreateDnVec.",
 		""
 	);
 	TBTKAssert(
 		cusparseCreateDnVec(&vecJIn2, basisSize, jIn2_device.data().get(), CUDA_C_64F)
 		== CUSPARSE_STATUS_SUCCESS,
-		"EPOCHSolver::calculateExpectationValueGPU",
+		"ChebyshevExpander::calculateCoefficientsGPU()",
 		"Error in cusparseCreateDnVec.",
 		""
 	);
@@ -307,9 +292,14 @@ vector<
 
 
 	//Calculate |j1>
-	int block_size = 1024;
-	int num_blocks = hoppingAmplitudeSet.getBasisSize()/block_size
-		+ (hoppingAmplitudeSet.getBasisSize()%block_size == 0 ? 0:1);
+	int block_size = to.size();
+	int num_blocks = 1;
+	int maxNumThreads = 1024;
+	if(block_size > maxNumThreads){
+		block_size = maxNumThreads;
+		num_blocks = 1 + ((to.size() - 1) / maxNumThreads); // ceil(to.size()/maxNumThreads)
+	}
+	
 	if(getGlobalVerbose() && getVerbose()){
 		Streams::out << "\tCUDA Block size: " << block_size << "\n";
 		Streams::out << "\tCUDA Num blocks: " << num_blocks << "\n";
@@ -326,14 +316,14 @@ vector<
 			&multiplier, descr, vecJIn1, &zero, vecJIn2, CUDA_C_64F,
 			CUSPARSE_SPMV_CSR_ALG2, &bufferSize) 
 		== CUSPARSE_STATUS_SUCCESS,
-		"EPOCHSolver::calculateExpectationValueGPU",
+		"ChebyshevExpander::calculateCoefficientsGPU()",
 		"Error in cusparseSpMV_bufferSize.",
 		"Error occured while allocating extra buffer in device memory"
 	);
     TBTKAssert(
 		cudaMalloc(&buffer_device, bufferSize)
 		== cudaSuccess,
-	   "EPOCHSolver::calculateExpectationValueGPU",
+	   "ChebyshevExpander::calculateCoefficientsGPU()",
 	   "Error in cudaMalloc.",
 	   "Error occured while allocating extra buffer in device memory"
    	);
@@ -359,17 +349,17 @@ vector<
 			&multiplier, descr, vecJIn1, &minus_one, vecJIn2, CUDA_C_64F,
 			CUSPARSE_SPMV_CSR_ALG2, &bufferSizeSecondOperation) 
 		== CUSPARSE_STATUS_SUCCESS,
-		"EPOCHSolver::calculateExpectationValueGPU",
+		"ChebyshevExpander::calculateCoefficientsGPU()",
 		"Error in cusparseSpMV_bufferSize.",
 		"Error occured while allocating extra buffer in device memory"
 	);
 	TBTKAssert(
 		bufferSizeSecondOperation <= bufferSize,
-		"EPOCHSolver::calculateExpectationValueGPU",
+		"ChebyshevExpander::calculateCoefficientsGPU()",
 		"Error in Allocating buffer for SPMV.",
 		"Buffer memory requirements changed."
 	);
-	saveCoefficients <<< num_blocks, block_size >>> (
+	extractCoefficients <<< num_blocks, block_size >>> (
 		jIn2_device.data().get(),
 		coefficients_device.data().get(),
 		1,
@@ -413,7 +403,7 @@ vector<
 			"Matrix-vector multiplication error.",
 			""
 		);
-		saveCoefficients <<< num_blocks, block_size >>> (
+		extractCoefficients <<< num_blocks, block_size >>> (
 			jIn2_device_ptr.get(),
 			coefficients_device.data().get(),
 			n,
@@ -449,7 +439,7 @@ vector<
     TBTKAssert(
 		cusparseDestroySpMat(descr
 	   ) == CUSPARSE_STATUS_SUCCESS,
-	   "EPOCHSolver::calculateExpectationValueGPU",
+	   "ChebyshevExpander::calculateCoefficientsGPU()",
 	   "Error in cusparseDestroySpMat.",
 	   "Error while destroying the handle descr stored on the device."	
    	)
@@ -458,7 +448,7 @@ vector<
     TBTKAssert(
 		cusparseDestroyDnVec(vecJIn1
 	   ) == CUSPARSE_STATUS_SUCCESS,
-	   "EPOCHSolver::calculateExpectationValueGPU",
+	   "ChebyshevExpander::calculateCoefficientsGPU()",
 	   "Error in cusparseDestroyDnVec.",
 	   "Error while destroying the dense vector vecJIn1 stored on the device."	
     )
@@ -466,7 +456,7 @@ vector<
     TBTKAssert(
 		cusparseDestroyDnVec(vecJIn2
 	   ) == CUSPARSE_STATUS_SUCCESS,
-	   "EPOCHSolver::calculateExpectationValueGPU",
+	   "ChebyshevExpander::calculateCoefficientsGPU()",
 	   "Error in cusparseDestroyDnVec.",
 	   "Error while destroying the dense vector vecJIn2 stored on the device."	
     )
@@ -474,7 +464,7 @@ vector<
     TBTKAssert(
 		cudaFree(buffer_device
 		) == cudaSuccess,
-		"EPOCHSolver::calculateExpectationValueGPU",
+		"ChebyshevExpander::calculateCoefficientsGPU()",
 		"CUDA free error while deallocating buffer_device.",
 		""
 	)
@@ -482,7 +472,7 @@ vector<
     TBTKAssert(
 		cusparseDestroy(handle
 	   ) == CUSPARSE_STATUS_SUCCESS,
-	   "EPOCHSolver::calculateExpectationValueGPU",
+	   "ChebyshevExpander::calculateCoefficientsGPU()",
 	   "Error in cusparseDestroy.",
 	   "Error while destroying the handle for the cuSparse calculation."	
     )
@@ -539,7 +529,7 @@ void ChebyshevExpander::loadLookupTableGPU(){
 		Streams::out << "CheyshevExpander::loadLookupTableGPU\n";
 
 	TBTKAssert(
-		 &generatingFunctionLookupTable != NULL, //TODO & needed to compile?
+		 &generatingFunctionLookupTable != NULL,
 		"ChebyshevExpander::loadLookupTableGPU()",
 		"Lookup table has not been generated.",
 		"Call ChebyshevExpander::generateLokupTable() to generate"
