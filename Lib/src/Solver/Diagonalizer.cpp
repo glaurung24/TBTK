@@ -30,6 +30,17 @@ namespace Solver{
 Diagonalizer::Diagonalizer() : Communicator(false){
 	maxIterations = 50;
 	selfConsistencyCallback = nullptr;
+	device = -1;
+	hamiltonian_device = nullptr;
+	eigenValues_device = nullptr;
+	hostMemoryReady = true;
+	useGPUAcceleration = false;
+}
+
+Diagonalizer::~Diagonalizer(){
+	if(useGPUAcceleration){
+		freeGPU();
+	}
 }
 
 void Diagonalizer::run(){
@@ -48,10 +59,16 @@ void Diagonalizer::run(){
 		}
 
 		if(useGPUAcceleration){
+			//Check if the GPU is initialized
+			if(device == -1){
+				initGPU();
+			}
 			solveGPU();
+			hostMemoryReady = false;
 		}
 		else{
 			solve();
+			hostMemoryReady = true;
 		}
 
 		if(selfConsistencyCallback){

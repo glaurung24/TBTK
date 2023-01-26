@@ -25,22 +25,92 @@
 
 #include <cusolverDn.h>
 #include <cuda_runtime.h>
-#include "cusolver_utils.h"
 
 using namespace std;
 
 namespace TBTK{
 namespace Solver{
 
-void Diagonalizer::solveGPU(){
+
+void Diagonalizer::initGPU(){
     //Initialize device
-    int device = GPUResourceManager::getInstance().allocateDevice();
-	TBTKAssert(
-		cudaSetDevice(device) == cudaSuccess,
-		"Diagonalizer::solveGPU()",
-		"CUDA set device error for device " << device << ".",
-		""
-	);
+    device = GPUResourceManager::getInstance().allocateDevice();
+    TBTKAssert(
+        cudaSetDevice(device) == cudaSuccess,
+        "Diagonalizer::solveGPU()",
+        "CUDA set device error for device " << device << ".",
+        ""
+    );
+    int n = getModel().getBasisSize();	//...nxn-matrix.
+    TBTKAssert(
+        cudaMalloc(
+            reinterpret_cast<void **>(&hamiltonian_device), 
+            sizeof(complex<double>) * hamiltonian.getSize()
+        ) == cudaSuccess,
+        "Diagonalizer::solveGPU()",
+        "CUDA error allocating memory on device.",
+        ""
+    )
+    TBTKAssert(
+        cudaMalloc(
+            reinterpret_cast<void **>(&eigenValues_device),
+                sizeof(double) * n
+        ) == cudaSuccess,
+        "Diagonalizer::solveGPU()",
+        "CUDA error allocating memory on device.",
+        ""
+    )
+    //Copy hamiltonian to device
+    TBTKAssert(
+        cudaMemcpyAsync(
+            hamiltonian_device, 
+            hamiltonian.getData(), 
+            sizeof(complex<double>) * hamiltonian.getSize(), 
+            cudaMemcpyHostToDevice
+            ) == cudaSuccess,
+        "Diagonalizer::solveGPU()",
+        "CUDA error copying to memory on device.",
+        ""
+    )
+
+}
+
+void Diagonalizer::freeGPU(){
+    if(hamiltonian_device){
+        TBTKAssert(
+            cudaFree(
+                hamiltonian_device
+            ) == cudaSuccess,
+            "Diagonalizer::solveGPU()",
+            "CUDA error freeing device memory.",
+            ""
+        )
+    }
+    hamiltonian_device = nullptr;
+    if(eigenValues_device){
+        TBTKAssert(
+            cudaFree(
+                eigenValues_device
+            ) == cudaSuccess,
+            "Diagonalizer::solveGPU()",
+            "CUDA error freeing device memory.",
+            ""
+        )
+    }
+    eigenValues_device = nullptr;
+    if(device){
+        GPUResourceManager::getInstance().freeDevice(device);
+    }
+}
+
+void Diagonalizer::solveGPU(){
+
+    TBTKAssert(
+        device != -1,
+        "Diagonalizer::solveGPU()",
+        "Started GPU calculation without proper initialization.",
+        ""
+    )
 
     cudaStream_t stream = NULL;
     TBTKAssert(
@@ -75,28 +145,9 @@ void Diagonalizer::solveGPU(){
 
     //Allocate memory on device for hamiltonian and corresponding output
     int n = getModel().getBasisSize();	//...nxn-matrix.
-    complex<double> *hamiltonian_device;
-    double *eigenValues_device;
     int *info_device = nullptr;
 
-    TBTKAssert(
-        cudaMalloc(
-            reinterpret_cast<void **>(&hamiltonian_device), 
-            sizeof(complex<double>) * hamiltonian.getSize()
-        ) == cudaSuccess,
-        "Diagonalizer::solveGPU()",
-        "CUDA error allocating memory on device.",
-        ""
-    )
-    TBTKAssert(
-        cudaMalloc(
-            reinterpret_cast<void **>(&eigenValues_device),
-             sizeof(double) * n
-        ) == cudaSuccess,
-        "Diagonalizer::solveGPU()",
-        "CUDA error allocating memory on device.",
-        ""
-    )
+
     TBTKAssert(
         cudaMalloc(
             reinterpret_cast<void **>(&info_device),
@@ -104,19 +155,6 @@ void Diagonalizer::solveGPU(){
         ) == cudaSuccess,
         "Diagonalizer::solveGPU()",
         "CUDA error allocating memory on device.",
-        ""
-    )
-
-    //Copy hamiltonian to device
-    TBTKAssert(
-        cudaMemcpyAsync(
-            hamiltonian_device, 
-            hamiltonian.getData(), 
-            sizeof(complex<double>) * hamiltonian.getSize(), 
-            cudaMemcpyHostToDevice,
-            stream) == cudaSuccess,
-        "Diagonalizer::solveGPU()",
-        "CUDA error copying to memory on device.",
         ""
     )
 
@@ -165,51 +203,29 @@ void Diagonalizer::solveGPU(){
     buffer_host = malloc(sizeof(complex<double>) * sizeBuffer_host);
 
     //Run the diagonalization routine
-    
-
-    // TBTKAssert(
-    //     cusolverDnXsyevd(
-    //         cusolverHandle, 
-    //         NULL, 
-    //         jobz, 
-    //         uplo,
-    //         n, 
-    //         CUDA_C_64F,
-    //         hamiltonian_device,
-    //         n,
-    //         CUDA_R_64F,
-    //         eigenValues_device,
-    //         CUDA_C_64F,
-    //         buffer_device,
-    //         sizeBuffer_device,
-    //         buffer_host,
-    //         sizeBuffer_host,
-    //         info_device
-    //     ) == CUSOLVER_STATUS_SUCCESS,
-    //     "Diagonalizer::solveGPU()",
-    //     "CUDA error in cusolverDnXsyevd.",
-    //     "" 
-    // )
-
-    int nrEigenValues = 0;
-    CUSOLVER_CHECK( cusolverDnXsyevd(
-        cusolverHandle, 
-        NULL, 
-        jobz, 
-        uplo,
-        n, 
-        CUDA_C_64F,
-        hamiltonian_device,
-        n,
-        CUDA_R_64F,
-        eigenValues_device,
-        CUDA_C_64F,
-        buffer_device,
-        sizeBuffer_device,
-        buffer_host,
-        sizeBuffer_host,
-        info_device
-    ));
+    TBTKAssert(
+        cusolverDnXsyevd(
+            cusolverHandle, 
+            NULL, 
+            jobz, 
+            uplo,
+            n, 
+            CUDA_C_64F,
+            hamiltonian_device,
+            n,
+            CUDA_R_64F,
+            eigenValues_device,
+            CUDA_C_64F,
+            buffer_device,
+            sizeBuffer_device,
+            buffer_host,
+            sizeBuffer_host,
+            info_device
+        ) == CUSOLVER_STATUS_SUCCESS,
+        "Diagonalizer::solveGPU()",
+        "CUDA error in cusolverDnXsyevd.",
+        "" 
+    )
 
     TBTKAssert(
         cudaMemcpyAsync(
@@ -231,32 +247,6 @@ void Diagonalizer::solveGPU(){
     );
 
     TBTKAssert(
-        cudaMemcpyAsync(
-            getEigenVectorsRW().getData(),
-            hamiltonian_device,
-            sizeof(complex<double>)*hamiltonian.getSize(),
-            cudaMemcpyDeviceToHost,
-            stream
-        ) == cudaSuccess,
-        "Diagonalizer::solveGPU()",
-        "CUDA error copying to memory from device.",
-        ""
-    )
-
-    TBTKAssert(
-        cudaMemcpyAsync(
-            getEigenValuesRW().getData(),
-            eigenValues_device,
-            sizeof(double)*n,
-            cudaMemcpyDeviceToHost,
-            stream
-        ) == cudaSuccess,
-        "Diagonalizer::solveGPU()",
-        "CUDA error copying to memory from device.",
-        ""
-    )
-
-    TBTKAssert(
         cudaStreamSynchronize(
             stream
         ) == cudaSuccess,
@@ -266,22 +256,6 @@ void Diagonalizer::solveGPU(){
     )
 
     // Free device resources
-    TBTKAssert(
-        cudaFree(
-            hamiltonian_device
-        ) == cudaSuccess,
-        "Diagonalizer::solveGPU()",
-        "CUDA error freeing device memory.",
-        ""
-    )
-    TBTKAssert(
-        cudaFree(
-            eigenValues_device
-        ) == cudaSuccess,
-        "Diagonalizer::solveGPU()",
-        "CUDA error freeing device memory.",
-        ""
-    )
     TBTKAssert(
         cudaFree(
             info_device
@@ -314,11 +288,78 @@ void Diagonalizer::solveGPU(){
         "CUDA error destroying cuda stream.",
         ""
     )
-	GPUResourceManager::getInstance().freeDevice(device);
-
     free(buffer_host);
     buffer_host = nullptr;
 }
+
+void Diagonalizer::copyResultsToHost(){
+    TBTKAssert(
+        device != -1,
+        "Diagonalizer::solveGPU()",
+        "Tried to access device memory without initialization.",
+        "Have you forgotten to run Solver::Diagonalizer.run()?"
+    )
+
+    cudaStream_t stream = NULL;
+    TBTKAssert(
+        cudaStreamCreateWithFlags(
+            &stream, 
+            cudaStreamNonBlocking
+        ) == cudaSuccess,
+        "Diagonalizer::solveGPU()",
+        "Failed to set up stream on device.",
+        ""
+    )
+
+    TBTKAssert(
+        cudaMemcpyAsync(
+            hamiltonian.getData(),
+            hamiltonian_device,
+            sizeof(complex<double>)*hamiltonian.getSize(),
+            cudaMemcpyDeviceToHost,
+            stream
+        ) == cudaSuccess,
+        "Diagonalizer::solveGPU()",
+        "CUDA error copying to memory from device.",
+        ""
+    )
+
+    TBTKAssert(
+        cudaMemcpyAsync(
+            eigenValues.getData(),
+            eigenValues_device,
+            sizeof(double)*eigenValues.getSize(),
+            cudaMemcpyDeviceToHost,
+            stream
+        ) == cudaSuccess,
+        "Diagonalizer::solveGPU()",
+        "CUDA error copying to memory from device.",
+        ""
+    )
+
+    //Wait for copy operations to finish
+    TBTKAssert(
+        cudaStreamSynchronize(
+            stream
+        ) == cudaSuccess,
+        "Diagonalizer::solveGPU()",
+        "CUDA error while synchronizing stream.",
+        ""
+    )
+
+    //Free uo stream again after copying is finished
+    TBTKAssert(
+        cudaStreamDestroy(
+            stream
+        ) == cudaSuccess,
+        "Diagonalizer::solveGPU()",
+        "CUDA error destroying cuda stream.",
+        ""
+    )
+    hostMemoryReady = true;
+}
+
+
 
 };	//End of namespace Solver
 };	//End of namespace TBTK

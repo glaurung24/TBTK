@@ -69,6 +69,9 @@ public:
 	/** Constructs a Solver::Diagonalizer. */
 	Diagonalizer();
 
+	/** Destructs a Solver::Diagonalizer. */
+	~Diagonalizer();
+
 	/** Set SelfConsistencyCallback. If never called, the self-consistency
 	 *  loop will not be run.
 	 *
@@ -114,6 +117,13 @@ public:
 	 *  @return A pointer to the internal storage for the eigenvalues. */
 	CArray<double>& getEigenValuesRW();
 
+	/** Get eigenvalues stored on the GPU device.
+	 *  Eigenvalues are ordered in accending order.
+	 *
+	 *  @return A pointer to the internal device storage for the
+	 *  eigenvalues. */
+	const double* getEigenValuesDevice();
+
 	/** Get eigenvectors. The eigenvectors are stored successively in
 	 *  memory, with the eigenvector corresponding to the smallest
 	 *  eigenvalue occupying the 'basisSize' first positions, the second
@@ -132,6 +142,17 @@ public:
 	 *
 	 *  @return A pointer to the internal storage for the eigenvectors. **/
 	CArray<std::complex<double>>& getEigenVectorsRW();
+
+	/** Get eigenvectors as stored on the GPU.
+	 *  The eigenvectors are stored successively in
+	 *  memory, with the eigenvector corresponding to the smallest
+	 *  eigenvalue occupying the 'basisSize' first positions, the second
+	 *  occupying the next 'basisSize' elements, and so forth, where
+	 *  'basisSize' is the basis size of the Model.
+	 *
+	 *  @return A pointer to the internal device storage for the 
+	 * 	eigenvectors. */
+	const std::complex<double>* getEigenVectorsDevice();
 
 	/** Get eigenvalue for a specific state.
 	 *
@@ -152,11 +173,23 @@ private:
 	/** pointer to array containing Hamiltonian. */
 	CArray<std::complex<double>> hamiltonian;
 
+	/** pointer to array containing Hamiltonian.
+	 * Memory is located on GPU device.  		 */
+	std::complex<double>* hamiltonian_device;
+
+	/** Pointer to array containing eigenvalues.
+	 * Memory is located on GPU device.  		 */
+	double* eigenValues_device;
+
 	/** Pointer to array containing eigenvalues.*/
 	CArray<double> eigenValues;
 
 	/** Pointer to array containing eigenvectors. */
 	CArray<std::complex<double>> eigenVectors;
+
+	/** Indicates of results have been copied to host
+ 	* memory.										*/
+	bool hostMemoryReady;
 
 	/** Pointer to array containing the basis transformation. Only used for
 	 *  non-orthonormal bases.*/
@@ -171,6 +204,20 @@ private:
 	/** SelfConsistencyCallback to call each time a diagonalization has
 	 *  been completed. */
 	SelfConsistencyCallback *selfConsistencyCallback;
+
+	/** Identification of GPU device*/
+	int device;
+
+	/** Initializes the GPU device and allocates necessary memory*/
+	void initGPU();
+
+	/** Frees the GPU device resources */
+	void freeGPU();
+
+	/** Copies GPU results to host memory, making it ready to read from.
+	*/
+	void copyResultsToHost();
+
 
 	/** Allocates space for Hamiltonian etc. */
 	void init();
@@ -205,19 +252,35 @@ inline void Diagonalizer::setMaxIterations(int maxIterations){
 }
 
 inline const CArray<double>& Diagonalizer::getEigenValues(){
+	if(!hostMemoryReady)
+		copyResultsToHost();
 	return eigenValues;
 }
 
 inline CArray<double>& Diagonalizer::getEigenValuesRW(){
+	if(!hostMemoryReady)
+		copyResultsToHost();
 	return eigenValues;
 }
 
+inline const double* Diagonalizer::getEigenValuesDevice(){
+	return eigenValues_device;
+}
+
 inline const CArray<std::complex<double>>& Diagonalizer::getEigenVectors(){
+	if(!hostMemoryReady)
+		copyResultsToHost();
 	return eigenVectors;
 }
 
 inline CArray<std::complex<double>>& Diagonalizer::getEigenVectorsRW(){
+	if(!hostMemoryReady)
+		copyResultsToHost();
 	return eigenVectors;
+}
+
+inline const std::complex<double>* Diagonalizer::getEigenVectorsDevice(){
+	return hamiltonian_device;
 }
 
 inline const std::complex<double> Diagonalizer::getAmplitude(
@@ -225,10 +288,14 @@ inline const std::complex<double> Diagonalizer::getAmplitude(
 	const Index &index
 ){
 	const Model &model = getModel();
+	if(!hostMemoryReady)
+		copyResultsToHost();
 	return eigenVectors[model.getBasisSize()*state + model.getBasisIndex(index)];
 }
 
 inline const double Diagonalizer::getEigenValue(int state){
+	if(!hostMemoryReady)
+		copyResultsToHost();
 	return eigenValues[state];
 }
 
