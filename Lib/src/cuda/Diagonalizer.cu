@@ -28,6 +28,50 @@
 
 using namespace std;
 
+// //From https://sodocumentation.net/cuda/topic/6566/parallel-reduction--e-g--how-to-sum-an-array-
+// __global__
+// void sumCommMultiBlock(const int *gArr, int arraySize, int *gOut) {
+//     int thIdx = threadIdx.x;
+//     int gthIdx = thIdx + blockIdx.x*blockSize;
+//     const int gridSize = blockSize*gridDim.x;
+//     int sum = 0;
+//     for (int i = gthIdx; i < arraySize; i += gridSize)
+//         sum += gArr[i];
+//     __shared__ int shArr[blockSize];
+//     shArr[thIdx] = sum;
+//     __syncthreads();
+//     for (int size = blockSize/2; size>0; size/=2) { //uniform
+//         if (thIdx<size)
+//             shArr[thIdx] += shArr[thIdx+size];
+//         __syncthreads();
+//     }
+//     if (thIdx == 0)
+//         gOut[blockIdx.x] = shArr[0];
+// }
+
+// __host__
+// complex<double> sumArray(complex<double>* arr_device, int arraySize) {
+//     const int blockSize = 1024;
+//     complex<double> out;
+//     complex<double>* out_device;
+//     const int gridSize = 1 + ((arraySize - 1) / blockSize);
+//     if(gridSize == 1){
+//         cudaMalloc((void**)&dev_out, sizeof(complex<double>));
+//         sumCommMultiBlock<<<gridSize, blockSize>>>(arr_device, arraySize, dev_out);
+//     }
+//     else{
+//         cudaMalloc((void**)&dev_out, sizeof(complex<double>)*gridSize);
+//         sumCommMultiBlock<<<gridSize, blockSize>>>(arr_device, arraySize, dev_out);
+//         //dev_out now holds the partial result
+//         sumCommMultiBlock<<<1, blockSize>>>(dev_out, gridSize, dev_out);
+//         //dev_out[0] now holds the final result
+//     }
+//     cudaDeviceSynchronize();
+//     cudaMemcpy(&out, out_device, sizeof(complex<double>), cudaMemcpyDeviceToHost);
+//     cudaFree(out_device);
+//     return out;
+// }
+
 namespace TBTK{
 namespace Solver{
 
@@ -362,4 +406,47 @@ void Diagonalizer::copyResultsToHost(){
 
 
 };	//End of namespace Solver
+// namespace PropertyExtractor{
+//     complex<double> Diagonalizer::calculateExpectationValues(
+//         vector<Index> to,
+//         vector<Index> from
+//     ){
+//         TBTKAssert(
+//             solver.getUseGPUAcceleration() == true,
+//             "Diagonalizer::calculateExpectationValues()",
+//             "Functionality only available while using CUDA GPU.",
+//             ""
+//         )
+//         const complex<double> i(0, 1);
+    
+//         complex<double> expectationValue = 0.;
+    
+//         Statistics statistics = solver.getModel().getStatistics();
+    
+//         for(int n = 0; n < solver.getModel().getBasisSize(); n++){
+//             double weight;
+//             if(statistics == Statistics::FermiDirac){
+//                 weight = Functions::fermiDiracDistribution(
+//                     solver.getEigenValue(n),
+//                     solver.getModel().getChemicalPotential(),
+//                     solver.getModel().getTemperature()
+//                 );
+//             }
+//             else{
+//                 weight = Functions::boseEinsteinDistribution(
+//                     solver.getEigenValue(n),
+//                     solver.getModel().getChemicalPotential(),
+//                     solver.getModel().getTemperature()
+//                 );
+//             }
+    
+//             complex<double> u_to = solver.getAmplitude(n, to);
+//             complex<double> u_from = solver.getAmplitude(n, from);
+    
+//             expectationValue += weight*conj(u_to)*u_from;
+//         }
+    
+//         return expectationValue;
+//     }
+// }; //End of namespace PropertyExtractor
 };	//End of namespace TBTK

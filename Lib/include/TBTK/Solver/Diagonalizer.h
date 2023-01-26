@@ -101,6 +101,13 @@ public:
 	 *  solver off or on. */
 	void setUseGPUAcceleration(bool useGPUAcceleration);
 
+	/** Get useGPUAcceleration. If true, GPU acceleration provided by
+	 *  CUDA routines is used.
+	 *
+	 *  @return Returns if the GPU acceleration for the Diagonalizer 
+	 *  solver is in use or not. */
+	bool getUseGPUAcceleration();
+
 	/** Run calculations. Diagonalizes ones if no self-consistency callback
 	 *  have been set, or otherwise multiple times until self-consistencey
 	 *  or maximum number of iterations has been reached. */
@@ -301,6 +308,10 @@ inline const double Diagonalizer::getEigenValue(int state){
 
 inline void Diagonalizer::setUseGPUAcceleration(bool useGPUAcceleration){
 	this->useGPUAcceleration = useGPUAcceleration;
+}
+
+inline 	bool Diagonalizer::getUseGPUAcceleration(){
+	return useGPUAcceleration;
 }
 
 };	//End of namespace Solver
