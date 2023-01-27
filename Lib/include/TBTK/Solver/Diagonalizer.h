@@ -294,9 +294,9 @@ inline const std::complex<double> Diagonalizer::getAmplitude(
 	int state,
 	const Index &index
 ){
-	const Model &model = getModel();
 	if(!hostMemoryReady)
 		copyResultsToHost();
+	const Model &model = getModel();
 	return eigenVectors[model.getBasisSize()*state + model.getBasisIndex(index)];
 }
 

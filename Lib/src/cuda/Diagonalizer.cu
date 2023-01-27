@@ -235,14 +235,15 @@ void Diagonalizer::solveGPU(){
         ""
     )
 
-    
+    // Cuda managed memory is used, instead of device memory, as this allocation
+    // can become substancial for bigger hamiltonians
     TBTKAssert(
-        cudaMalloc(reinterpret_cast<void **>(&buffer_device), 
+        cudaMallocManaged(reinterpret_cast<void **>(&buffer_device),
         sizeof(complex<double>) * sizeBuffer_device
         ) == cudaSuccess,
         "Diagonalizer::solveGPU()",
         "Failed to allocate buffer memory on device.",
-        "" 
+        "Memory required is " <<  sizeof(complex<double>) *sizeBuffer_device << "b"
     )
     buffer_host = malloc(sizeof(complex<double>) * sizeBuffer_host);
 
@@ -298,7 +299,6 @@ void Diagonalizer::solveGPU(){
         "CUDA error while synchronizing stream.",
         ""
     )
-
     // Free device resources
     TBTKAssert(
         cudaFree(
@@ -308,6 +308,7 @@ void Diagonalizer::solveGPU(){
         "CUDA error freeing device memory.",
         ""
     )
+    info_device = nullptr;
     TBTKAssert(
         cudaFree(
             buffer_device
@@ -316,6 +317,7 @@ void Diagonalizer::solveGPU(){
         "CUDA error freeing device memory.",
         ""
     )
+    buffer_device = nullptr;
     TBTKAssert(
         cusolverDnDestroy(
             cusolverHandle
@@ -324,6 +326,7 @@ void Diagonalizer::solveGPU(){
         "CUDA error destroying cusolver handle.",
         ""
     )
+    cusolverHandle = NULL;
     TBTKAssert(
         cudaStreamDestroy(
             stream
@@ -332,6 +335,7 @@ void Diagonalizer::solveGPU(){
         "CUDA error destroying cuda stream.",
         ""
     )
+    stream = NULL;
     free(buffer_host);
     buffer_host = nullptr;
 }
@@ -357,9 +361,9 @@ void Diagonalizer::copyResultsToHost(){
 
     TBTKAssert(
         cudaMemcpyAsync(
-            hamiltonian.getData(),
+            eigenVectors.getData(),
             hamiltonian_device,
-            sizeof(complex<double>)*hamiltonian.getSize(),
+            sizeof(complex<double>)*eigenVectors.getSize(),
             cudaMemcpyDeviceToHost,
             stream
         ) == cudaSuccess,
