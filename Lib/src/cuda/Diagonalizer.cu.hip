@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-/** @file Diagonalizer.cu
+/** @file Diagonalizer.cu.hip
  *
  *  @author Andreas Theiler
  */
@@ -23,7 +23,7 @@
 #include "TBTK/TBTKMacros.h"
 #include "TBTK/GPUResourceManager.h"
 
-#include <cusolverDn.h>
+#include <hipsolver.h>
 #include <hip/hip_runtime.h>
 
 using namespace std;
@@ -52,21 +52,21 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
         ""
     )
     
-    //Create handle for cuSolver and set stream
-    cusolverDnHandle_t cusolverHandle = NULL;
+    //Create handle for hip Solver and set stream
+    hipsolverHandle_t hipsolverHandle = NULL;
     TBTKAssert(
-        cusolverDnCreate(
-            &cusolverHandle
-        ) == CUSOLVER_STATUS_SUCCESS,
+        hipsolverCreate(
+            &hipsolverHandle
+        ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
-        "CUDA error in cusolverDnXsyevd_bufferSize.",
+        "CUDA error in hipsolverDnCreate().",
         ""
     )
     TBTKAssert(
-        cusolverDnSetStream(
-            cusolverHandle,
+        hipsolverSetStream(
+            hipsolverHandle,
              stream
-            ) == CUSOLVER_STATUS_SUCCESS,
+            ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
         "CUDA error setting up stream for cusolver.",
         ""
@@ -84,7 +84,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
             sizeof(complex<double>) * matrix.getSize()
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error allocating unified memory.",
+        "HIP error allocating unified memory.",
         ""
     ) 
     TBTKAssert(
@@ -136,8 +136,8 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
 
 
     //Set up the cusolver routine
-    cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR;		//...eigenvalues and eigenvectors...
-    hipblasFillMode_t uplo = HIPBLAS_FILL_MODE_UPPER;		//...for an upper triangular Matrix...
+    hipsolverEigMode_t jobz = HIPSOLVER_EIG_MODE_VECTOR;		//...eigenvalues and eigenvectors...
+    hipsolverFillMode_t uplo = HIPSOLVER_FILL_MODE_UPPER;		//...for an upper triangular Matrix...
 
     void *buffer_device = nullptr; // Device buffer memory
     void *buffer_host = nullptr;  //Host buffer memory
@@ -148,21 +148,21 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
     
     //Check if buffer is needed and allocate accordingly
     TBTKAssert(
-        cusolverDnXsyevd_bufferSize(
-            cusolverHandle, 
+        hipsolverDnXsyevd_bufferSize(
+            hipsolverHandle, 
             NULL, 
             jobz, 
             uplo, 
             n, 
-            HIPBLAS_C_64F, //Complex double input matrix
+            HIP_C_64F, //Complex double input matrix
             hamiltonian_device,
             n,
-            HIPBLAS_R_64F,
+            HIP_R_64F,
             eigenValues_device, 
-            HIPBLAS_C_64F,
+            HIP_C_64F,
             &sizeBuffer_device,
             &sizeBuffer_host
-        ) == CUSOLVER_STATUS_SUCCESS,
+        ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
         "CUDA error in cusolverDnXsyevd_bufferSize.",
         ""
@@ -189,24 +189,24 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
 
     //Run the diagonalization routine
     TBTKAssert(
-        cusolverDnXsyevd(
-        cusolverHandle, 
+        hipsolverDnXsyevd(
+        hipsolverHandle, 
         NULL, 
         jobz, 
         uplo,
         n, 
-        HIPBLAS_C_64F,
+        HIP_C_64F,
         hamiltonian_device,
         n,
-        HIPBLAS_R_64F,
+        HIP_R_64F,
         eigenValues_device,
-        HIPBLAS_C_64F,
+        HIP_C_64F,
         buffer_device,
         sizeBuffer_device,
         buffer_host,
         sizeBuffer_host,
         info_device
-        ) == CUSOLVER_STATUS_SUCCESS,
+        ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
         "CUDA error in cusolverDnXsyevd.",
         ""
@@ -302,7 +302,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
     TBTKAssert(
         cusolverDnDestroy(
             cusolverHandle
-        ) == CUSOLVER_STATUS_SUCCESS,
+        ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
         "CUDA error destroying cusolver handle.",
         ""
