@@ -148,7 +148,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
     
     //Check if buffer is needed and allocate accordingly
     TBTKAssert(
-        hipsolverDnXsyevd_bufferSize(
+        hipsolverZheevd_bufferSize(
             hipsolverHandle, 
             NULL, 
             jobz, 
@@ -164,7 +164,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
             &sizeBuffer_host
         ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
-        "CUDA error in cusolverDnXsyevd_bufferSize.",
+        "CUDA error in hipsolverZheevd_bufferSize.",
         ""
     )
 
@@ -189,7 +189,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
 
     //Run the diagonalization routine
     TBTKAssert(
-        hipsolverDnXsyevd(
+        hipsolverZheevd(
         hipsolverHandle, 
         NULL, 
         jobz, 
@@ -208,7 +208,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
         info_device
         ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
-        "CUDA error in cusolverDnXsyevd.",
+        "CUDA error in hipsolverZheevd.",
         ""
     )
 
@@ -300,7 +300,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
         ""
     )
     TBTKAssert(
-        cusolverDnDestroy(
+        cusolverDestroy(
             cusolverHandle
         ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
