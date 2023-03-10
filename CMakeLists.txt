@@ -16,7 +16,8 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/Modules/")
 INCLUDE(TBTKVersionInfo)
 INCLUDE(TBTKBuildOptions)
 
-
+# Search for rocm in common locations
+LIST(APPEND CMAKE_PREFIX_PATH /opt/rocm/hip /opt/rocm)
 
 
 #Detect packages
