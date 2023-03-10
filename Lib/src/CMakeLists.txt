@@ -90,7 +90,7 @@ IF(${COMPILE_HIP})
 	FILE(
 		GLOB
 		TBTK_HIP_SRC
-		hip/*.hip
+		hip/*.cpp
 	)
 	SET(TBTK_SRC ${TBTK_SRC} ${TBTK_HIP_SRC})
 	MESSAGE("COMPILING HIP") #TODO delete
