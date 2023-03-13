@@ -23,7 +23,7 @@
 #include "TBTK/TBTKMacros.h"
 #include "TBTK/GPUResourceManager.h"
 
-#define __HIP_PLATFORM_AMD__
+#define __HIP_PLATFORM_AMD__ //TODO set this during build
 #include <hipsolver/hipsolver.h>
 #include <hip/hip_runtime.h>
 

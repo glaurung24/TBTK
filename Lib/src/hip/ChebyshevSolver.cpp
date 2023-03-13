@@ -1,4 +1,3 @@
-#include "hip/hip_runtime.h"
 /* Copyright 2016 Kristofer Björnson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,9 +28,10 @@
 #include "TBTK/Streams.h"
 #include "TBTK/TBTKMacros.h"
 
+#define __HIP_PLATFORM_AMD__ //TODO set this during build
+
+#include <hip/hip_runtime.h>
 #include <hip/hip_complex.h>
-#include <hip/hip_runtime.h>
-#include <hip/hip_runtime.h>
 #include <hipsparse.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
@@ -253,7 +253,7 @@ vector<
 	TBTKAssert(
 		hipsparseCreate(&handle) == HIPSPARSE_STATUS_SUCCESS,
 		"ChebyshevExpander::calculateCoefficientsGPU()",
-		"cuSPARSE create error.",
+		"hipSPARSE create error.",
 		""
 	);
 
@@ -474,7 +474,7 @@ vector<
 	   ) == HIPSPARSE_STATUS_SUCCESS,
 	   "ChebyshevExpander::calculateCoefficientsGPU()",
 	   "Error in hipsparseDestroy.",
-	   "Error while destroying the handle for the cuSparse calculation."	
+	   "Error while destroying the handle for the hipSparse calculation."	
     )
 	handle = NULL;
 
@@ -555,7 +555,7 @@ void ChebyshevExpander::loadLookupTableGPU(){
 			complex<double>
 		);
 	if(getGlobalVerbose() && getVerbose()){
-		Streams::out << "\tCUDA memory requirement: ";
+		Streams::out << "\tHIP memory requirement: ";
 		if(memoryRequirement < 1024)
 			Streams::out << memoryRequirement << "B\n";
 		else if(memoryRequirement < 1024*1024)
@@ -576,7 +576,7 @@ void ChebyshevExpander::loadLookupTableGPU(){
 		TBTKAssert(
 			hipSetDevice(n) == hipSuccess,
 			"ChebyshevExpander::loadLookupTableGPU()",
-			"CUDA set device error for device " << n << ".",
+			"HIP set device error for device " << n << ".",
 			""
 		);
 
@@ -590,7 +590,7 @@ void ChebyshevExpander::loadLookupTableGPU(){
 				)
 			)  == hipSuccess,
 			"ChebyshevExpander::loadLookupTableGPU()",
-			"CUDA malloc error while allocating"
+			"HIP malloc error while allocating"
 			<< " generatingFunctionLookupTable_device.",
 			""
 		);
@@ -605,7 +605,7 @@ void ChebyshevExpander::loadLookupTableGPU(){
 				hipMemcpyHostToDevice
 			) == hipSuccess,
 			"ChebyshevExpander::loadLookupTableGPU()",
-			"CUDA memcpy error while copying"
+			"HIP memcpy error while copying"
 			<< " generatingFunctionLookupTable_device.",
 			""
 		);
@@ -648,7 +648,7 @@ vector<complex<double>> ChebyshevExpander::generateGreensFunctionGPU(
 	TBTKAssert(
 		hipSetDevice(device) == hipSuccess,
 		"ChebyshevExpander::generateGreensFunctionGPU()",
-		"CUDA set device error for device " << device << ".",
+		"HIP set device error for device " << device << ".",
 		""
 	);
 
@@ -690,7 +690,7 @@ vector<complex<double>> ChebyshevExpander::generateGreensFunctionGPU(
 			lookupTableResolution*sizeof(complex<double>)
 		)  == hipSuccess,
 		"ChebyshevExpander::generateGreensFunctionGPU()",
-		"CUDA malloc error while allocating greensFunction_device.",
+		"HIP malloc error while allocating greensFunction_device.",
 		""
 	);
 	TBTKAssert(
@@ -699,7 +699,7 @@ vector<complex<double>> ChebyshevExpander::generateGreensFunctionGPU(
 			lookupTableNumCoefficients*sizeof(complex<double>)
 		)  == hipSuccess,
 		"ChebyshevExpander::generateGreensFunctionGPU()",
-		"CUDA malloc error while allocating coefficients_device.",
+		"HIP malloc error while allocating coefficients_device.",
 		""
 	);
 
@@ -711,7 +711,7 @@ vector<complex<double>> ChebyshevExpander::generateGreensFunctionGPU(
 			hipMemcpyHostToDevice
 		) == hipSuccess,
 		"ChebyshevExpander::generateGreensFunctionGPU()",
-		"CUDA memcpy error while copying greensFunctionData.",
+		"HIP memcpy error while copying greensFunctionData.",
 		""
 	);
 	TBTKAssert(
@@ -722,7 +722,7 @@ vector<complex<double>> ChebyshevExpander::generateGreensFunctionGPU(
 			hipMemcpyHostToDevice
 		) == hipSuccess,
 		"ChebyshevExpander::generateGreensFunctionGPU()",
-		"CUDA memcpy error while copying coefficients.",
+		"HIP memcpy error while copying coefficients.",
 		""
 	);
 
@@ -731,8 +731,8 @@ vector<complex<double>> ChebyshevExpander::generateGreensFunctionGPU(
 		+ (lookupTableResolution%block_size == 0 ? 0:1);
 
 	if(getGlobalVerbose() && getVerbose()){
-		Streams::out << "\tCUDA Block size: " << block_size << "\n";
-		Streams::out << "\tCUDA Num blocks: " << num_blocks << "\n";
+		Streams::out << "\tHIP Block size: " << block_size << "\n";
+		Streams::out << "\tHIP Num blocks: " << num_blocks << "\n";
 	}
 
 	calculateGreensFunction <<< num_blocks, block_size>>> (
@@ -751,7 +751,7 @@ vector<complex<double>> ChebyshevExpander::generateGreensFunctionGPU(
 			hipMemcpyDeviceToHost
 		) == hipSuccess,
 		"ChebyshevExpander::generateGreensFunctionGPU()",
-		"CUDA memcpy error while copying greensFunction_device.",
+		"HIP memcpy error while copying greensFunction_device.",
 		""
 	);
 
