@@ -23,7 +23,8 @@
 #include "TBTK/TBTKMacros.h"
 #include "TBTK/GPUResourceManager.h"
 
-#include <hipsolver.h>
+#define __HIP_PLATFORM_AMD__
+#include <hipsolver/hipsolver.h>
 #include <hip/hip_runtime.h>
 
 using namespace std;
@@ -191,16 +192,12 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
     TBTKAssert(
         hipsolverZheevd(
         hipsolverHandle, 
-        NULL, 
         jobz, 
         uplo,
         n, 
-        HIP_C_64F,
         hamiltonian_device,
         n,
-        HIP_R_64F,
         eigenValues_device,
-        HIP_C_64F,
         buffer_device,
         sizeBuffer_device,
         buffer_host,
@@ -300,8 +297,8 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
         ""
     )
     TBTKAssert(
-        cusolverDestroy(
-            cusolverHandle
+       hipsolverDestroy(
+           hipsolverHandle
         ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
         "CUDA error destroying cusolver handle.",
