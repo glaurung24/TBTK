@@ -38,7 +38,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
 	TBTKAssert(
 		hipSetDevice(device) == hipSuccess,
 		"Diagonalizer::solveGPU()",
-		"CUDA set device error for device " << device << ".",
+		"HIP set device error for device " << device << ".",
 		""
 	);
 
@@ -60,7 +60,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
             &hipsolverHandle
         ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
-        "CUDA error in hipsolverDnCreate().",
+        "HIP error in hipsolverDnCreate().",
         ""
     )
     TBTKAssert(
@@ -69,20 +69,20 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
              stream
             ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
-        "CUDA error setting up stream for cusolver.",
+        "HIP error setting up stream for hipsolver.",
         ""
     ) 
 
     //Allocate memory on device for hamiltonian and corresponding output
-    int n = getModel().getBasisSize();	//...nxn-matrix.
-    complex<double> *hamiltonian_device;
+    int n = getModel().getBasisSize();	//...nxn-matrix. //TODO calculate n from matrix, not model
+    hipDoubleComplex *matrix_device;
     double *eigenValues_device;
     int *info_device = nullptr;
 
     TBTKAssert(
         hipMallocManaged(
-            reinterpret_cast<void **>(&hamiltonian_device), 
-            sizeof(complex<double>) * matrix.getSize()
+            reinterpret_cast<void **>(&matrix_device), 
+            sizeof(hipDoubleComplex) * matrix.getSize()
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
         "HIP error allocating unified memory.",
@@ -94,7 +94,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
             sizeof(double) * eigenValues.getSize()
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error allocating memory on device.",
+        "HIP error allocating memory on device.",
         ""
     ) 
 
@@ -104,7 +104,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
              sizeof(int)
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error allocating memory on device.",
+        "HIP error allocating memory on device.",
         ""
     )
     //Prefetching memory on the device (it is allowed to fail, if
@@ -116,64 +116,60 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
         stream
     );
     hipMemPrefetchAsync(
-        &hamiltonian_device, 
-        sizeof(complex<double>) * matrix.getSize(), 
+        &matrix_device, 
+        sizeof(hipDoubleComplex) * matrix.getSize(), 
         device, 
         stream
     );
 
-    //Copy hamiltonian to device
+    //Copy matrix to device
     TBTKAssert(
         hipMemcpyAsync(
-            hamiltonian_device, 
+            matrix_device, 
             matrix.getData(), 
-            sizeof(complex<double>) * matrix.getSize(), 
+            sizeof(hipDoubleComplex) * matrix.getSize(), 
             hipMemcpyHostToDevice,
             stream) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error copying to memory on device.",
+        "HIP error copying to memory on device.",
         ""
     )
 
 
-    //Set up the cusolver routine
+    //Set up the hipsolver routine
     hipsolverEigMode_t jobz = HIPSOLVER_EIG_MODE_VECTOR;		//...eigenvalues and eigenvectors...
     hipsolverFillMode_t uplo = HIPSOLVER_FILL_MODE_UPPER;		//...for an upper triangular Matrix...
 
-    void *buffer_device = nullptr; // Device buffer memory
-    void *buffer_host = nullptr;  //Host buffer memory
-    size_t sizeBuffer_device = 0; //Size of buffer memory needed on device
-    size_t sizeBuffer_host = 0; //Size of buffer memory needed on host
+    hipDoubleComplex *buffer_device = nullptr; // Device buffer memory
+    int sizeBuffer_device = 0; //Size of buffer memory needed on device
 
     int info;
+
+
+hipsolverZheevd_bufferSize(hipsolverHandle_thandle, hipsolverEigMode_tjobz, hipsolverFillMode_tuplo, intn, hipDoubleComplex*A, intlda, double*D, int*lwork)
     
     //Check if buffer is needed and allocate accordingly
     TBTKAssert(
         hipsolverZheevd_bufferSize(
             hipsolverHandle, 
-            NULL, 
             jobz, 
             uplo, 
-            n, 
-            HIP_C_64F, //Complex double input matrix
-            hamiltonian_device,
             n,
-            HIP_R_64F,
+            matrix_device,
+            n,
             eigenValues_device, 
-            HIP_C_64F,
-            &sizeBuffer_device,
-            &sizeBuffer_host
+            &sizeBuffer_device
         ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
-        "CUDA error in hipsolverZheevd_bufferSize.",
+        "HIP error in hipsolverZheevd_bufferSize.",
         ""
     )
 
-    // Cuda managed memory is used, instead of device memory, as this allocation
+    // HIP managed memory is used, instead of device memory, as this allocation
     // can become substancial for bigger hamiltonians
     TBTKAssert(
         hipMallocManaged(reinterpret_cast<void **>(&buffer_device),
-            sizeof(complex<double>) * sizeBuffer_device
+            sizeof(hipDoubleComplex) * sizeBuffer_device
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
         "Failed to allocate buffer memory on device.",
@@ -181,7 +177,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
     )
     hipMemPrefetchAsync(
         &buffer_device, 
-        sizeof(complex<double>) * sizeBuffer_device, 
+        sizeof(hipDoubleComplex) * sizeBuffer_device, 
         device, 
         stream
     );
@@ -195,17 +191,15 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
         jobz, 
         uplo,
         n, 
-        hamiltonian_device,
+        matrix_device,
         n,
         eigenValues_device,
         buffer_device,
         sizeBuffer_device,
-        buffer_host,
-        sizeBuffer_host,
         info_device
         ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
-        "CUDA error in hipsolverZheevd.",
+        "HIP error in hipsolverZheevd.",
         ""
     )
 
@@ -218,26 +212,26 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
             stream
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error copying to memory from device.",
+        "HIP error copying to memory from device.",
         ""
     )
     TBTKAssert(
         info == 0,
         "Diagonalizer:solve()",
-        "Diagonalization routine cusolverDnXsyevd exited with INFO=" + to_string(info) + ".",
-        "See CUDA documentation for cusolverDnXsyevd for further information."
+        "Diagonalization routine hipsolverZheevd exited with INFO=" + to_string(info) + ".",
+        "See HIP documentation for hipsolverZheevd for further information."
     );
 
     TBTKAssert(
         hipMemcpyAsync(
             matrix.getData(),
-            hamiltonian_device,
-            sizeof(complex<double>)*matrix.getSize(),
+            matrix_device,
+            sizeof(hipDoubleComplex)*matrix.getSize(),
             hipMemcpyDeviceToHost,
             stream
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error copying to memory from device.",
+        "HIP error copying to memory from device.",
         ""
     )
 
@@ -250,7 +244,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
             stream
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error copying to memory from device.",
+        "HIP error copying to memory from device.",
         ""
     )
 
@@ -259,17 +253,17 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
             stream
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error while synchronizing device stream.",
+        "HIP error while synchronizing device stream.",
         ""
     )
 
     // Free device resources
     TBTKAssert(
         hipFree(
-            hamiltonian_device
+            matrix_device
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error freeing device memory.",
+        "HIP error freeing device memory.",
         ""
     )
     TBTKAssert(
@@ -277,7 +271,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
             eigenValues_device
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error freeing device memory.",
+        "HIP error freeing device memory.",
         ""
     )
     TBTKAssert(
@@ -285,7 +279,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
             info_device
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error freeing device memory.",
+        "HIP error freeing device memory.",
         ""
     )
     TBTKAssert(
@@ -293,7 +287,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
             buffer_device
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error freeing device memory.",
+        "HIP error freeing device memory.",
         ""
     )
     TBTKAssert(
@@ -301,7 +295,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
            hipsolverHandle
         ) == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
-        "CUDA error destroying cusolver handle.",
+        "HIP error destroying hipsolver handle.",
         ""
     )
     TBTKAssert(
@@ -309,13 +303,10 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
             stream
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
-        "CUDA error destroying cuda stream.",
+        "HIP error destroying hip stream.",
         ""
     )
 	GPUResourceManager::getInstance().freeDevice(device);
-
-    free(buffer_host);
-    buffer_host = nullptr;
 }
 
 void Diagonalizer::setupBasisTransformationGPU(){
