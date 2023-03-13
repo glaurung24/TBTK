@@ -294,15 +294,15 @@ vector<
 	//Calculate |j1>
 	int block_size = to.size();
 	int num_blocks = 1;
-	int maxNumThreads = 1024;
+	int maxNumThreads = 1024; //TODO this should be determined at runtime
 	if(block_size > maxNumThreads){
 		block_size = maxNumThreads;
 		num_blocks = 1 + ((to.size() - 1) / maxNumThreads); // ceil(to.size()/maxNumThreads)
 	}
 	
 	if(getGlobalVerbose() && getVerbose()){
-		Streams::out << "\tCUDA Block size: " << block_size << "\n";
-		Streams::out << "\tCUDA Num blocks: " << num_blocks << "\n";
+		Streams::out << "\tHIP Block size: " << block_size << "\n";
+		Streams::out << "\tHIP Num blocks: " << num_blocks << "\n";
 	}
 
 
