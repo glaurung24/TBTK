@@ -146,7 +146,6 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
     int info;
 
 
-hipsolverZheevd_bufferSize(hipsolverHandle_thandle, hipsolverEigMode_tjobz, hipsolverFillMode_tuplo, intn, hipDoubleComplex*A, intlda, double*D, int*lwork)
     
     //Check if buffer is needed and allocate accordingly
     TBTKAssert(
@@ -182,7 +181,6 @@ hipsolverZheevd_bufferSize(hipsolverHandle_thandle, hipsolverEigMode_tjobz, hips
         stream
     );
 
-    buffer_host = malloc(sizeof(complex<double>) * sizeBuffer_host);
 
     //Run the diagonalization routine
     TBTKAssert(

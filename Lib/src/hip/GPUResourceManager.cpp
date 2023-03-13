@@ -21,6 +21,9 @@
 #include "TBTK/GPUResourceManager.h"
 #include "TBTK/Streams.h"
 
+#define __HIP_PLATFORM_AMD__    //TODO, solve this during build
+#include <hip/hip_runtime.h>
+
 using namespace std;
 
 namespace TBTK{
