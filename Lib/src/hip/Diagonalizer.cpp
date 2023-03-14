@@ -145,24 +145,43 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
 
     int info;
 
+    hipsolverStatus_t status = hipsolverZheevd_bufferSize(
+        hipsolverHandle, 
+        jobz, 
+        uplo, 
+        n,
+        matrix_device,
+        n,
+        eigenValues_device, 
+        &sizeBuffer_device
+    );
+    cout << "hipsolverZheevd_bufferSize returns:" << endl;
+    cout << status << endl;
 
-    
-    //Check if buffer is needed and allocate accordingly
     TBTKAssert(
-        hipsolverZheevd_bufferSize(
-            hipsolverHandle, 
-            jobz, 
-            uplo, 
-            n,
-            matrix_device,
-            n,
-            eigenValues_device, 
-            &sizeBuffer_device
-        ) == HIPSOLVER_STATUS_SUCCESS,
+        status == HIPSOLVER_STATUS_SUCCESS,
         "Diagonalizer::solveGPU()",
         "HIP error in hipsolverZheevd_bufferSize.",
         ""
     )
+
+    
+    //Check if buffer is needed and allocate accordingly
+    // TBTKAssert(
+    //     hipsolverZheevd_bufferSize(
+    //         hipsolverHandle, 
+    //         jobz, 
+    //         uplo, 
+    //         n,
+    //         matrix_device,
+    //         n,
+    //         eigenValues_device, 
+    //         &sizeBuffer_device
+    //     ) == HIPSOLVER_STATUS_SUCCESS,
+    //     "Diagonalizer::solveGPU()",
+    //     "HIP error in hipsolverZheevd_bufferSize.",
+    //     ""
+    // )
 
     // HIP managed memory is used, instead of device memory, as this allocation
     // can become substancial for bigger hamiltonians
