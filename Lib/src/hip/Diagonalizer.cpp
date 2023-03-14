@@ -80,7 +80,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
     int *info_device = nullptr;
 
     TBTKAssert(
-        hipMallocManaged(
+        hipMalloc(
             reinterpret_cast<void **>(&matrix_device), 
             sizeof(hipDoubleComplex) * matrix.getSize()
         ) == hipSuccess,
@@ -89,7 +89,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
         ""
     ) 
     TBTKAssert(
-        hipMallocManaged(
+        hipMalloc(
             reinterpret_cast<void **>(&eigenValues_device),
             sizeof(double) * eigenValues.getSize()
         ) == hipSuccess,
@@ -109,18 +109,18 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
     )
     //Prefetching memory on the device (it is allowed to fail, if
     // memory oversubscription is needed)
-    hipMemPrefetchAsync(
-        &eigenValues_device, 
-        sizeof(double) * eigenValues.getSize(), 
-        device, 
-        stream
-    );
-    hipMemPrefetchAsync(
-        &matrix_device, 
-        sizeof(hipDoubleComplex) * matrix.getSize(), 
-        device, 
-        stream
-    );
+    // hipMemPrefetchAsync(
+    //     &eigenValues_device, 
+    //     sizeof(double) * eigenValues.getSize(), 
+    //     device, 
+    //     stream
+    // );
+    // hipMemPrefetchAsync(
+    //     &matrix_device, 
+    //     sizeof(hipDoubleComplex) * matrix.getSize(), 
+    //     device, 
+    //     stream
+    // );
 
     //Copy matrix to device
     TBTKAssert(
@@ -167,7 +167,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
     // HIP managed memory is used, instead of device memory, as this allocation
     // can become substancial for bigger hamiltonians
     TBTKAssert(
-        hipMallocManaged(reinterpret_cast<void **>(&buffer_device),
+        hipMalloc(reinterpret_cast<void **>(&buffer_device),
             sizeof(hipDoubleComplex) * sizeBuffer_device
         ) == hipSuccess,
         "Diagonalizer::solveGPU()",
