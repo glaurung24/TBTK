@@ -144,19 +144,19 @@ void Diagonalizer::update(){
 // 			int *info);		//0 = successful, <0 = -info value was illegal, >0 = info number of off-diagonal elements failed to converge.
 
 //Lapack function for matrix diagonalization of banded triangular matrix
-extern "C" void zhbeb_( //TODO this function is not used?
-	char *jobz,		//'E' = Eigenvalues only, 'V' = Eigenvalues and eigenvectors.
-	char *uplo,		//'U' = Stored as upper triangular, 'L' = Stored as lower triangular.
-	int *n,			//n*n = Matrix size
-	int *kd,		//Number of (sub/super)diagonal elements
-	complex<double> *ab,	//Input matrix
-	int *ldab,		//Leading dimension of array ab. ldab >= kd + 1
-	double *w,		//Eigenvalues, is in accending order if info = 0
-	complex<double> *z,	//Eigenvectors
-	int *ldz,		//
-	complex<double> *work,	//Workspace, dimension = max(1, 2*N-1)
-	double *rwork,		//Workspace, dimension = max(1, 3*N-2)
-	int *info);		//0 = successful, <0 = -info value was illegal, >0 = info number of off-diagonal elements failed to converge.
+// extern "C" void zhbeb_( //TODO this function is not used?
+// 	char *jobz,		//'E' = Eigenvalues only, 'V' = Eigenvalues and eigenvectors.
+// 	char *uplo,		//'U' = Stored as upper triangular, 'L' = Stored as lower triangular.
+// 	int *n,			//n*n = Matrix size
+// 	int *kd,		//Number of (sub/super)diagonal elements
+// 	complex<double> *ab,	//Input matrix
+// 	int *ldab,		//Leading dimension of array ab. ldab >= kd + 1
+// 	double *w,		//Eigenvalues, is in accending order if info = 0
+// 	complex<double> *z,	//Eigenvectors
+// 	int *ldz,		//
+// 	complex<double> *work,	//Workspace, dimension = max(1, 2*N-1)
+// 	double *rwork,		//Workspace, dimension = max(1, 3*N-2)
+// 	int *info);		//0 = successful, <0 = -info value was illegal, >0 = info number of off-diagonal elements failed to converge.
 
 void Diagonalizer::setupBasisTransformation(){
 	//Get the OverlapAmplitudeSet.
