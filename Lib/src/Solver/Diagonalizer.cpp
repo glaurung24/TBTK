@@ -132,16 +132,16 @@ void Diagonalizer::update(){
 }
 
 //Lapack function for matrix diagonalization of triangular matrix.
-extern "C" void zhpev_(char *jobz,		//'E' = Eigenvalues only, 'V' = Eigenvalues and eigenvectors.
-			char *uplo,		//'U' = Stored as upper triangular, 'L' = Stored as lower triangular.
-			int *n,			//n*n = Matrix size
-			complex<double> *ap,	//Input matrix
-			double *w,		//Eigenvalues, is in accending order if info = 0
-			complex<double> *z,	//Eigenvectors
-			int *ldz,		//
-			complex<double> *work,	//Workspace, dimension = max(1, 2*N-1)
-			double *rwork,		//Workspace, dimension = max(1, 3*N-2)
-			int *info);		//0 = successful, <0 = -info value was illegal, >0 = info number of off-diagonal elements failed to converge.
+// extern "C" void zhpev_(char *jobz,		//'E' = Eigenvalues only, 'V' = Eigenvalues and eigenvectors.
+// 			char *uplo,		//'U' = Stored as upper triangular, 'L' = Stored as lower triangular.
+// 			int *n,			//n*n = Matrix size
+// 			complex<double> *ap,	//Input matrix
+// 			double *w,		//Eigenvalues, is in accending order if info = 0
+// 			complex<double> *z,	//Eigenvectors
+// 			int *ldz,		//
+// 			complex<double> *work,	//Workspace, dimension = max(1, 2*N-1)
+// 			double *rwork,		//Workspace, dimension = max(1, 3*N-2)
+// 			int *info);		//0 = successful, <0 = -info value was illegal, >0 = info number of off-diagonal elements failed to converge.
 
 //Lapack function for matrix diagonalization of banded triangular matrix
 extern "C" void zhbeb_( //TODO this function is not used?
@@ -203,18 +203,18 @@ void Diagonalizer::setupBasisTransformation(){
 	CArray<double> overlapMatrixEigenValues(basisSize);
 	CArray<complex<double>> overlapMatrixEigenVectors(basisSize*basisSize);
 
-	zhpev_(
-		&jobz,
-		&uplo,
-		&n,
-		overlapMatrix.getData(),
-		overlapMatrixEigenValues.getData(),
-		overlapMatrixEigenVectors.getData(),
-		&n,
-		work.getData(),
-		rwork.getData(),
-		&info
-	);
+	// zhpev_(
+	// 	&jobz,
+	// 	&uplo,
+	// 	&n,
+	// 	overlapMatrix.getData(),
+	// 	overlapMatrixEigenValues.getData(),
+	// 	overlapMatrixEigenVectors.getData(),
+	// 	&n,
+	// 	work.getData(),
+	// 	rwork.getData(),
+	// 	&info
+	// );
 
 	//Setup basisTransformation storage.
 	basisTransformation = CArray<complex<double>>(basisSize*basisSize);
@@ -323,18 +323,18 @@ void Diagonalizer::solve(){
 		CArray<double> rwork(3*n-2);
 		int info;
 		//Solve brop
-		zhpev_(
-			&jobz,
-			&uplo,
-			&n,
-			hamiltonian.getData(),
-			eigenValues.getData(),
-			eigenVectors.getData(),
-			&n,
-			work.getData(),
-			rwork.getData(),
-			&info
-		);
+		// zhpev_(
+		// 	&jobz,
+		// 	&uplo,
+		// 	&n,
+		// 	hamiltonian.getData(),
+		// 	eigenValues.getData(),
+		// 	eigenVectors.getData(),
+		// 	&n,
+		// 	work.getData(),
+		// 	rwork.getData(),
+		// 	&info
+		// );
 
 		TBTKAssert(
 			info == 0,
