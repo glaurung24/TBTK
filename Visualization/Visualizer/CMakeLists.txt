@@ -17,7 +17,7 @@
 cmake_minimum_required(VERSION 2.6)
  
 project(TBTKVisualizer)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
  
 if(WIN32)
 	set(CMAKE_MODULE_PATH "$ENV{OGRE_HOME}/CMake/;${CMAKE_MODULE_PATH}")
