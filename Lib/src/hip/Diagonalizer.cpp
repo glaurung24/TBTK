@@ -134,6 +134,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
         "HIP error copying to memory on device.",
         ""
     )
+    
 
 
     //Set up the hipsolver routine
@@ -157,6 +158,7 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
     );
     cout << "hipsolverZheevd_bufferSize returns:" << endl;
     cout << status << endl;
+    cout << sizeBuffer_device << endl;
 
     TBTKAssert(
         status == HIPSOLVER_STATUS_SUCCESS,

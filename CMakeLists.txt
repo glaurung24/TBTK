@@ -17,7 +17,8 @@ INCLUDE(TBTKVersionInfo)
 INCLUDE(TBTKBuildOptions)
 
 # Search for rocm in common locations
-LIST(APPEND CMAKE_PREFIX_PATH /opt/rocm/hip /opt/rocm)
+# LIST(APPEND CMAKE_PREFIX_PATH /opt/rocm/hip /opt/rocm)
+LIST(APPEND CMAKE_PREFIX_PATH /cfs/klemming/root/rocm/opt/rocm-5.3.3/hip /cfs/klemming/root/rocm/opt/rocm-5.3.3/) #TODO remove after testing on dardel
 
 
 #Detect packages
@@ -246,7 +247,7 @@ IF(HIP_FOUND)
 	MESSAGE("[X] HIP")
 	SET(COMPILE_HIP TRUE)
 	SET(COMPILE_CUDA FALSE) #TODO
-	# SET(HIP_HIPCC_FLAGS "${HIP_HIPCC_FLAGS} -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -D__STRICT_ANSI__")
+	SET(HIP_HIPCC_FLAGS "${HIP_HIPCC_FLAGS} ")
 ELSE(HIP_FOUND)
 	SET(COMPILE_HIP FALSE)
 	MESSAGE("[ ] HIP")
@@ -363,6 +364,7 @@ INCLUDE_DIRECTORIES(
 
 INCLUDE_DIRECTORIES(
 	Lib/include/
+	/cfs/klemming/root/rocm/opt/rocm-5.3.3/include/ #TODO remove and let cmake find those after testing
 	Lib/include/Builders/
 	Lib/include/Core/
 	Lib/include/Elements/
