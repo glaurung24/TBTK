@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.21)
 
 set(TBTK_CXX_STANDARD 17)
-set(COMPILE_HIP FALSE)
+set(COMPILE_HIP TRUE)
 
 
 
@@ -235,20 +235,27 @@ endif()
 #------------- Setup for hip files -------------
 
 
-# enable_language(HIP)
-# include(CheckLanguage)
-# find_package(HIP REQUIRED)
 
-# target_include_directories(TBTKDiagonalizer PUBLIC 
-#                 Lib/include/TBTK/Utilities/
-# )
-# target_sources(TBTKDiagonalizer PRIVATE
-#                 Lib/src/hip/Diagonalizer.cpp
-#                 Lib/src/hip/ChebyshevSolver.cpp
-#                 Lib/src/hip/GPUResourceManager.cpp
-#                 Lib/src/Utilities/GPUResourceManager.cpp
-# )
+if(COMPILE_HIP)
+        enable_language(HIP)
+        find_package(HIP REQUIRED)
+        find_package(HIPSOLVER)
+        find_package(HIPSPARSE)
+        set_source_files_properties(Lib/src/hip/Diagonalizer.cpp PROPERTIES LANGUAGE HIP) #TODO try all files in one
+        set_source_files_properties(Lib/src/hip/ChebyshevSolver.cpp PROPERTIES LANGUAGE HIP)
+        set_source_files_properties(Lib/src/hip/GPUResourceManager.cpp PROPERTIES LANGUAGE HIP)
 
+        target_link_libraries(TBTKSolver PRIVATE 
+                        hip::device
+                        hip::hipsolver
+                        hip::hipsparse
+        )
+        target_include_directories(TBTKSolver PRIVATE
+                ${HIPSOLVER_INCLUDE_DIRS}
+                ${HIP_INCLUDE_DIRS}
+                ${HIPSPARSE_INCLUDE_DIRS}
+        )
+endif()
 
 #---------------- Target Property extractors ----------------
 add_library(TBTKProperty SHARED)
