@@ -9,38 +9,38 @@ set(COMPILE_HIP TRUE)
 
 #------------------- Gather information about TBTK version -----------------
 EXECUTE_PROCESS(
-	COMMAND git rev-parse --short HEAD
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	OUTPUT_VARIABLE TBTK_VERSION_GIT_HASH
-	OUTPUT_STRIP_TRAILING_WHITESPACE
+        COMMAND git rev-parse --short HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE TBTK_VERSION_GIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 SET(TBTK_VERSION_GIT_HASH ${TBTK_VERSION_GIT_HASH})
 ADD_DEFINITIONS(-DTBTK_VERSION_GIT_HASH=\"${TBTK_VERSION_GIT_HASH}\")
 #Avoid printing setting and printing information multiple times.
 IF(NOT TBTK_VERSION_DEFINED)
-	SET(TBTK_VERSION_MAJOR 2)
-	SET(TBTK_VERSION_MINOR 6)
-	SET(TBTK_VERSION_PATCH 4)
-	SET(
-		TBTK_VERSION
-		${TBTK_VERSION_MAJOR}.${TBTK_VERSION_MINOR}.${TBTK_VERSION_PATCH}
-	)
+        SET(TBTK_VERSION_MAJOR 2)
+        SET(TBTK_VERSION_MINOR 6)
+        SET(TBTK_VERSION_PATCH 4)
+        SET(
+                TBTK_VERSION
+                ${TBTK_VERSION_MAJOR}.${TBTK_VERSION_MINOR}.${TBTK_VERSION_PATCH}
+        )
 
-	ADD_DEFINITIONS(
-		-DTBTK_VERSION_MAJOR=${TBTK_VERSION_MAJOR}
-		-DTBTK_VERSION_MINOR=${TBTK_VERSION_MINOR}
-		-DTBTK_VERSION_PATCH=${TBTK_VERSION_PATCH}
-	)
+        ADD_DEFINITIONS(
+                -DTBTK_VERSION_MAJOR=${TBTK_VERSION_MAJOR}
+                -DTBTK_VERSION_MINOR=${TBTK_VERSION_MINOR}
+                -DTBTK_VERSION_PATCH=${TBTK_VERSION_PATCH}
+        )
 
-	# INCLUDE(TBTKGitInfo)
+        # INCLUDE(TBTKGitInfo)
 
-	MESSAGE("================================== ABOUT TBTK ==================================")
-	MESSAGE("Version:\t${TBTK_VERSION}")
-	MESSAGE("Git hash:\t${TBTK_VERSION_GIT_HASH}")
-	MESSAGE("================================================================================")
-	Message("")
+        MESSAGE("================================== ABOUT TBTK ==================================")
+        MESSAGE("Version:\t${TBTK_VERSION}")
+        MESSAGE("Git hash:\t${TBTK_VERSION_GIT_HASH}")
+        MESSAGE("================================================================================")
+        Message("")
 
-	SET(TBTK_VERSION_DEFINED TRUE)
+        SET(TBTK_VERSION_DEFINED TRUE)
 ENDIF(NOT TBTK_VERSION_DEFINED)
 
 
@@ -53,10 +53,10 @@ PROJECT(TBTK
         LANGUAGES CXX )
 
 #---------------- Get packages ----------------------------------------
-# FIND_PACKAGE(OpenMP QUIET REQUIRED)
+FIND_PACKAGE(OpenMP QUIET REQUIRED)
 
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-# ADD_DEFINITIONS(-DTBTK_USE_OPEN_MP)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ADD_DEFINITIONS(-DTBTK_USE_OPEN_MP)
 
 include(CheckLanguage)
 # check_language(hip)
@@ -248,17 +248,27 @@ if(COMPILE_HIP)
         set_source_files_properties(Lib/src/hip/Diagonalizer.cpp PROPERTIES LANGUAGE HIP) #TODO try all files in one
         set_source_files_properties(Lib/src/hip/ChebyshevSolver.cpp PROPERTIES LANGUAGE HIP)
         set_source_files_properties(Lib/src/hip/GPUResourceManager.cpp PROPERTIES LANGUAGE HIP)
-
         target_link_libraries(TBTKSolver PRIVATE 
                         hip::device
-                        hip::hipsolver
-                        hip::hipsparse
+                        roc::hipsolver
+                        roc::hipsparse
         )
         target_include_directories(TBTKSolver PRIVATE
                 ${HIPSOLVER_INCLUDE_DIRS}
                 ${HIP_INCLUDE_DIRS}
                 ${HIPSPARSE_INCLUDE_DIRS}
         )
+        cmake_policy(SET CMP0104 NEW)
+        cmake_policy(SET CMP0105 NEW) #TODO Why?
+        if(GPU_ARCH)
+                set_target_properties(TBTKSolver PROPERTIES HIP_STANDARD ${TBTK_CXX_STANDARD}
+                         HIP_STANDARD_REQUIRED ON)
+                set(CMAKE_HIP_ARCHITECTURES "${GPU_ARCH}")
+                set(HIP_ARCHITECTURES "${GPU_ARCH}")
+                set_target_properties(TBTKSolver PROPERTIES HIP_ARCHITECTURES "${GPU_ARCH}") #TODO do that in one command
+                set_target_properties(TBTKSolver PROPERTIES GPU_TARGETS "${GPU_ARCH}")
+                message("Set GPU Arch")
+        endif()
 endif()
 
 #---------------- Target Property extractors ----------------
@@ -314,7 +324,7 @@ target_link_libraries(TBTKPropertyExtractor PUBLIC
 #----------------TODO in core: Target Utilities ----------------
 # add_library(TBTKCore SHARED)
 target_include_directories(TBTKCore PUBLIC 
-                Lib/include/Utilities
+                Lib/include/Utilities/
 )
 target_sources(TBTKCore PRIVATE
         Lib/src/Utilities/BandDiagramGenerator.cpp
@@ -340,7 +350,7 @@ target_sources(TBTKCore PRIVATE
         Lib/src/Utilities/Vector2d.cpp
         Lib/src/Utilities/Vector3d.cpp
         Lib/src/Utilities/VectorNd.cpp
-        Lib/src/Utilities/WannierParser.cpp
+        # Lib/src/Utilities/WannierParser.cpp
 )
 # set_target_properties(TBTKUtilities PROPERTIES
 #                     CXX_STANDARD 17
