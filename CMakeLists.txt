@@ -237,6 +237,10 @@ endif()
 
 
 if(COMPILE_HIP)
+        check_language(HIP)
+        if(NOT CMAKE_HIP_COMPILER)
+                 message(FATAL_ERROR "ERROR! Could not find HIP compiler!")
+        endif()
         enable_language(HIP)
         find_package(HIP REQUIRED)
         find_package(HIPSOLVER)
