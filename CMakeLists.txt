@@ -53,10 +53,10 @@ PROJECT(TBTK
         LANGUAGES CXX )
 
 #---------------- Get packages ----------------------------------------
-FIND_PACKAGE(OpenMP QUIET REQUIRED)
+# FIND_PACKAGE(OpenMP QUIET REQUIRED)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-ADD_DEFINITIONS(-DTBTK_USE_OPEN_MP)
+# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+# ADD_DEFINITIONS(-DTBTK_USE_OPEN_MP)
 
 include(CheckLanguage)
 # check_language(hip)
@@ -72,7 +72,7 @@ target_include_directories(json INTERFACE json/)
 
 #-------------- Target TBTK Core ----------------------------------
 ADD_DEFINITIONS(-DTBTK_WRAP_PRIMITIVE_TYPES=1) #TODO ask Kristofer if this can be turned on in the headers
-add_library(TBTKCore SHARED)
+add_library(TBTKCore SHARED) #TODO change to interface
 target_link_libraries(TBTKCore PUBLIC json)
 # TODO Put TBTK exceptions into core
 target_include_directories(TBTKCore PUBLIC 
@@ -264,7 +264,7 @@ endif()
 #---------------- Target Property extractors ----------------
 add_library(TBTKProperty SHARED)
 target_include_directories(TBTKProperty PUBLIC 
-                Lib/include/Utilities
+                Lib/include/Property/
 )
 target_sources(TBTKProperty PRIVATE
         Lib/src/Property/Density.cpp
@@ -292,7 +292,7 @@ target_link_libraries(TBTKProperty PUBLIC
 )
 
 #---------------- Target Property extractors ----------------
-add_library(TBTKPropertyExtractor SHARED)
+add_library(TBTKPropertyExtractor OBJECT)
 target_include_directories(TBTKPropertyExtractor PUBLIC 
                 Lib/include/TBTK/PropertyExtractor/
 )
@@ -311,12 +311,12 @@ target_link_libraries(TBTKPropertyExtractor PUBLIC
         TBTKSolver
 )
 
-#---------------- Target Utilities ----------------
-add_library(TBTKUtilities SHARED)
-target_include_directories(TBTKUtilities PUBLIC 
+#----------------TODO in core: Target Utilities ----------------
+# add_library(TBTKCore SHARED)
+target_include_directories(TBTKCore PUBLIC 
                 Lib/include/Utilities
 )
-target_sources(TBTKUtilities PRIVATE
+target_sources(TBTKCore PRIVATE
         Lib/src/Utilities/BandDiagramGenerator.cpp
         Lib/src/Utilities/Communicator.cpp
         Lib/src/Utilities/FileParser.cpp
@@ -342,13 +342,13 @@ target_sources(TBTKUtilities PRIVATE
         Lib/src/Utilities/VectorNd.cpp
         Lib/src/Utilities/WannierParser.cpp
 )
-set_target_properties(TBTKUtilities PROPERTIES
-                    CXX_STANDARD 17
-                    CXX_STANDARD_REQUIRED ON
-)
-target_link_libraries(TBTKUtilities PUBLIC
-        TBTKCore
-)
+# set_target_properties(TBTKUtilities PROPERTIES
+#                     CXX_STANDARD 17
+#                     CXX_STANDARD_REQUIRED ON
+# )
+# target_link_libraries(TBTKUtilities PUBLIC
+#         TBTKCore
+# )
 
 #----------------------------- Testing -----------------------------------
 enable_testing()
@@ -365,7 +365,7 @@ target_link_libraries(DiagonalizerTest PRIVATE
         TBTKSolver
         TBTKProperty
         TBTKPropertyExtractor
-        TBTKUtilities
+        # TBTKUtilities
 )
 set_target_properties(DiagonalizerTest PROPERTIES
                     CXX_STANDARD 17
