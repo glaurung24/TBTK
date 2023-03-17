@@ -146,26 +146,27 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
 
     int info;
 
-    hipsolverStatus_t status = hipsolverZheevd_bufferSize(
-        hipsolverHandle, 
-        jobz, 
-        uplo, 
-        n,
-        matrix_device,
-        n,
-        eigenValues_device, 
-        &sizeBuffer_device
-    );
-    cout << "hipsolverZheevd_bufferSize returns:" << endl;
-    cout << status << endl;
-    cout << sizeBuffer_device << endl;
+    // TODO buffer allocation fails on dardel, but runs without it
+    // hipsolverStatus_t status = hipsolverZheevd_bufferSize(
+    //     hipsolverHandle, 
+    //     jobz, 
+    //     uplo, 
+    //     n,
+    //     matrix_device,
+    //     n,
+    //     eigenValues_device, 
+    //     &sizeBuffer_device
+    // );
+    // cout << "hipsolverZheevd_bufferSize returns:" << endl;
+    // cout << status << endl;
+    // cout << sizeBuffer_device << endl;
 
-    TBTKAssert(
-        status == HIPSOLVER_STATUS_SUCCESS,
-        "Diagonalizer::solveGPU()",
-        "HIP error in hipsolverZheevd_bufferSize.",
-        ""
-    )
+    // TBTKAssert(
+    //     status == HIPSOLVER_STATUS_SUCCESS,
+    //     "Diagonalizer::solveGPU()",
+    //     "HIP error in hipsolverZheevd_bufferSize.",
+    //     ""
+    // )
 
     
     //Check if buffer is needed and allocate accordingly
@@ -185,22 +186,16 @@ void Diagonalizer::solveGPU(CArray<complex<double>>& matrix, CArray<double>& eig
     //     ""
     // )
 
-    // HIP managed memory is used, instead of device memory, as this allocation
+    // TODO uncomment when allocating buffer
     // can become substancial for bigger hamiltonians
-    TBTKAssert(
-        hipMalloc(reinterpret_cast<void **>(&buffer_device),
-            sizeof(hipDoubleComplex) * sizeBuffer_device
-        ) == hipSuccess,
-        "Diagonalizer::solveGPU()",
-        "Failed to allocate buffer memory on device.",
-        "" 
-    )
-    hipMemPrefetchAsync(
-        &buffer_device, 
-        sizeof(hipDoubleComplex) * sizeBuffer_device, 
-        device, 
-        stream
-    );
+    // TBTKAssert(
+    //     hipMalloc(reinterpret_cast<void **>(&buffer_device),
+    //         sizeof(hipDoubleComplex) * sizeBuffer_device
+    //     ) == hipSuccess,
+    //     "Diagonalizer::solveGPU()",
+    //     "Failed to allocate buffer memory on device.",
+    //     "" 
+    // )
 
 
     //Run the diagonalization routine

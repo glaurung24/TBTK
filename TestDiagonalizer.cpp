@@ -1,6 +1,7 @@
 #include "TBTK/TBTK.h"
 #include "TBTK/Solver/Diagonalizer.h"
 #include "TBTK/PropertyExtractor/Diagonalizer.h"
+#include "TBTK/Timer.h"s
 #include <iostream>
 
 
@@ -54,7 +55,9 @@ int main(int argc, char **argv){
     model.setTemperature(0.);
     solverGPU.setModel(model);
 	solverGPU.setUseGPUAcceleration(true);
+    Timer::tick("GPU execution")
     solverGPU.run();
+    Timer::tock();
     PropertyExtractor::Diagonalizer peGPU(solverGPU);
     if((real(peGPU.calculateExpectationValue(index, index)) -0.5) < EPS){
         return 0;
