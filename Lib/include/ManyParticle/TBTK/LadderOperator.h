@@ -27,10 +27,10 @@
 #include "TBTK/FockState.h"
 #include "TBTK/HoppingAmplitudeSet.h"
 #include "TBTK/Statistics.h"
+#include "TBTK/BitRegister.h"
 
 namespace TBTK{
 
-template<typename BIT_REGISTER>
 class LadderOperator{
 public:
 	/** Operator type. */
@@ -47,8 +47,8 @@ public:
 		unsigned int state,
 		unsigned int numBitsPerState,
 		unsigned int maxOccupation,
-		const FockState<BIT_REGISTER> &templateState,
-		const BIT_REGISTER &fermionMask
+		const FockState<BitRegister> &templateState,
+		const BitRegister &fermionMask
 	);
 
 	/** Destructor. */
@@ -65,11 +65,11 @@ public:
 
 	/** Get number of particles in the associated state. */
 	unsigned int getNumParticles(
-		const FockState<BIT_REGISTER> &fockState
+		const FockState<BitRegister> &fockState
 	) const;
 
 	/** Multiplication operator. */
-	FockState<BIT_REGISTER>& operator*(FockState<BIT_REGISTER> &rhs) const;
+	FockState<BitRegister>& operator*(FockState<BitRegister> &rhs) const;
 private:
 	/** Operator type. */
 	Type type;
@@ -84,36 +84,36 @@ private:
 	unsigned int state;
 
 	/** State mask. */
-	BIT_REGISTER stateMask;
+	BitRegister stateMask;
 
 	/** Least significant bit. */
-	BIT_REGISTER leastSignificantBit;
+	BitRegister leastSignificantBit;
 
 	/** Index of least significant bit. */
 	unsigned int leastSignificantBitIndex;
 
 	/** State corresponding to maximum number of occupied particles. */
-	BIT_REGISTER maxOccupation;
+	BitRegister maxOccupation;
 
 	/** Mask for singeling out those fermions that have a higher bit index
 	 *  than the state corresponding to this opperator. */
-	BIT_REGISTER moreSignificantFermionMask;
+	BitRegister moreSignificantFermionMask;
 };
 
-template<typename BIT_REGISTER>
-LadderOperator<BIT_REGISTER>::LadderOperator(){
+template<typename BitRegister>
+LadderOperator<BitRegister>::LadderOperator(){
 }
 
-template<typename BIT_REGISTER>
-LadderOperator<BIT_REGISTER>::LadderOperator(
+template<typename BitRegister>
+LadderOperator<BitRegister>::LadderOperator(
 	Type type,
 	Statistics statistics,
 	const HoppingAmplitudeSet *hoppingAmplitudeSet,
 	unsigned int state,
 	unsigned int numBitsPerState,
 	unsigned int maxOccupation,
-	const FockState<BIT_REGISTER> &templateState,
-	const BIT_REGISTER &fermionMask
+	const FockState<BitRegister> &templateState,
+	const BitRegister &fermionMask
 ) :
 	stateMask(templateState.bitRegister),
 	leastSignificantBit(templateState.bitRegister),
@@ -129,55 +129,55 @@ LadderOperator<BIT_REGISTER>::LadderOperator(
 
 	for(unsigned int n = 0; n < stateMask.getNumBits(); n++){
 		if(n >= leastSignificantBitIndex && n < leastSignificantBitIndex + numBitsPerState)
-			stateMask.setBit(n, 1);
+			stateMask.set(n, 1);
 		else
-			stateMask.setBit(n, 0);
+			stateMask.set(n, 0);
 
 		if(n == leastSignificantBitIndex)
-			leastSignificantBit.setBit(n, 1);
+			leastSignificantBit.set(n, 1);
 		else
-			leastSignificantBit.setBit(n, 0);
+			leastSignificantBit.set(n, 0);
 	}
 
 	this->maxOccupation = maxOccupation;
 	this->maxOccupation = (this->maxOccupation << leastSignificantBitIndex);
 
 	for(unsigned int n = 0; n < moreSignificantFermionMask.getNumBits(); n++){
-		this->moreSignificantFermionMask.setBit(n, false);
-		if(leastSignificantBit.getBit(n))
+		this->moreSignificantFermionMask.set(n, false);
+		if(leastSignificantBit[n])
 			break;
 	}
 }
 
-template<typename BIT_REGISTER>
-LadderOperator<BIT_REGISTER>::~LadderOperator(){
+template<typename BitRegister>
+LadderOperator<BitRegister>::~LadderOperator(){
 }
 
-template<typename BIT_REGISTER>
-typename LadderOperator<BIT_REGISTER>::Type LadderOperator<BIT_REGISTER>::getType() const{
+template<typename BitRegister>
+typename LadderOperator<BitRegister>::Type LadderOperator<BitRegister>::getType() const{
 	return type;
 }
 
-template<typename BIT_REGISTER>
-const Index LadderOperator<BIT_REGISTER>::getPhysicalIndex() const{
+template<typename BitRegister>
+const Index LadderOperator<BitRegister>::getPhysicalIndex() const{
 	return hoppingAmplitudeSet->getPhysicalIndex(state);
 }
 
-template<typename BIT_REGISTER>
-unsigned int LadderOperator<BIT_REGISTER>::getState() const{
+template<typename BitRegister>
+unsigned int LadderOperator<BitRegister>::getState() const{
 	return state;
 }
 
-template<typename BIT_REGISTER>
-unsigned int LadderOperator<BIT_REGISTER>::getNumParticles(
-	const FockState<BIT_REGISTER> &fockState
+template<typename BitRegister>
+unsigned int LadderOperator<BitRegister>::getNumParticles(
+	const FockState<BitRegister> &fockState
 ) const{
 	return ((fockState.getBitRegister() & stateMask) >> leastSignificantBitIndex).toUnsignedInt();
 }
 
-template<typename BIT_REGISTER>
-FockState<BIT_REGISTER>& LadderOperator<BIT_REGISTER>::operator*(
-	FockState<BIT_REGISTER> &rhs
+template<typename BitRegister>
+FockState<BitRegister>& LadderOperator<BitRegister>::operator*(
+	FockState<BitRegister> &rhs
 ) const{
 	switch(type){
 	case Type::Creation:
@@ -196,7 +196,7 @@ FockState<BIT_REGISTER>& LadderOperator<BIT_REGISTER>::operator*(
 		break;
 	default:
 		TBTKExit(
-			"LadderOperator<BIT_REGISTER>::operator*()",
+			"LadderOperator<BitRegister>::operator*()",
 			"This should never happen.",
 			"Contact the developer."
 		);
@@ -210,7 +210,7 @@ FockState<BIT_REGISTER>& LadderOperator<BIT_REGISTER>::operator*(
 		break;
 	default:
 		TBTKExit(
-			"LadderOperator<BIT_REGISTER>::operator*()",
+			"LadderOperator<BitRegister>::operator*()",
 			"This should never happen.",
 			"Contact the developer."
 		);

@@ -25,16 +25,10 @@
 #define COM_DAFER45_TBTK_FOCK_STATE
 
 #include "TBTK/Streams.h"
+#include "TBTK/BitRegister.h"
 
 namespace TBTK{
 
-template<typename BIT_REGISTER>
-class FockSpace;
-
-template<typename BIT_REGISTER>
-class LadderOperator;
-
-template<typename BIT_REGISTER>
 class FockState{
 public:
 	/** Constructor. */
@@ -49,11 +43,11 @@ public:
 	/** Returns true if the vector is the state is the null vector. */
 	bool isNull() const;
 
-	/** Returns the BIT_REGISTER. */
-	const BIT_REGISTER& getBitRegister() const;
+	/** Returns the BitRegister. */
+	const BitRegister& getBitRegister() const;
 
-	/** Returns the BIT_REGISTER. */
-	BIT_REGISTER& getBitRegister();
+	/** Returns the BitRegister. */
+	BitRegister& getBitRegister();
 
 	/** Get prefactor. */
 	int getPrefactor() const;
@@ -65,21 +59,20 @@ public:
 	void print() const;
 private:
 	/** Allow the FockSpace to immediatly access the internal storage. */
-	friend class FockSpace<BIT_REGISTER>;
+	friend class FockSpace;
 
 	/** Allow operators to operate immediately on the internal storage. */
-	friend class LadderOperator<BIT_REGISTER>;
+	friend class LadderOperator;
 
 	/** Bit register used to store occupation numbers. */
-	BIT_REGISTER bitRegister;
+	BitRegister bitRegister;
 
 	/** Prefactor containing the sign and amplitude of the state a|psi>.
 	 *  For efficiency sign(a)a^2 is stored rather than a. */
 	int prefactor;
 };
 
-template<typename BIT_REGISTER>
-FockState<BIT_REGISTER>::FockState(unsigned int exponentialDimension
+FockState::FockState(unsigned int exponentialDimension
 ) :
 	bitRegister(exponentialDimension+1)
 {
@@ -87,48 +80,47 @@ FockState<BIT_REGISTER>::FockState(unsigned int exponentialDimension
 	prefactor = 1;
 }
 
-template<typename BIT_REGISTER>
-FockState<BIT_REGISTER>::FockState(const FockState &fockState
+FockState::FockState(const FockState &fockState
 ) :
 	bitRegister(fockState.bitRegister)
 {
 	prefactor = fockState.prefactor;
 }
 
-template<typename BIT_REGISTER>
-FockState<BIT_REGISTER>::~FockState(){
+
+FockState::~FockState(){
 }
 
-template<typename BIT_REGISTER>
-bool FockState<BIT_REGISTER>::isNull() const{
+
+bool FockState::isNull() const{
 	return bitRegister.getMostSignificantBit();
 }
 
-template<typename BIT_REGISTER>
-const BIT_REGISTER& FockState<BIT_REGISTER>::getBitRegister() const{
+
+const BitRegister& FockState::getBitRegister() const{
 	return bitRegister;
 }
 
-template<typename BIT_REGISTER>
-BIT_REGISTER& FockState<BIT_REGISTER>::getBitRegister(){
+
+BitRegister& FockState::getBitRegister(){
 	return bitRegister;
 }
 
-template<typename BIT_REGISTER>
-int FockState<BIT_REGISTER>::getPrefactor() const{
+
+int FockState::getPrefactor() const{
 	return prefactor;
 }
 
-/*template<typename BIT_REGISTER>
-unsigned int FockState<BIT_REGISTER>::getNumFermions() const{
+/*
+unsigned int FockState::getNumFermions() const{
 	return bitRegister.getNumOneBits();
 }*/
 
-template<typename BIT_REGISTER>
-void FockState<BIT_REGISTER>::print() const{
+
+void FockState::print() const{
 	Streams::out << prefactor << "|";
 	for(int n = bitRegister.getNumBits()-1; n >= 0; n--){
-		Streams::out << bitRegister.getBit(n);
+		Streams::out << bitRegister[n];
 		if(n%8 == 0 && n != 0)
 			Streams::out << " ";
 	}

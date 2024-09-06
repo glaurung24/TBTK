@@ -24,8 +24,7 @@
 
 namespace TBTK{
 
-template<>
-FockSpace<BitRegister>::FockSpace(
+FockSpace::FockSpace(
 	const HoppingAmplitudeSet *hoppingAmplitudeSet,
 	Statistics statistics,
 	unsigned int maxParticlesPerState
@@ -62,14 +61,14 @@ FockSpace<BitRegister>::FockSpace(
 		"Use ExtensiveBitRegister instead."
 	);
 
-	vacuumState = new FockState<BitRegister>(BitRegister().getNumBits());
+	vacuumState = new FockState(BitRegister().getNumBits());
 
 	BitRegister fermionMask;
 	fermionMask.clear();
 	switch(statistics){
 	case Statistics::FermiDirac:
 		for(unsigned int n = 0; n < exponentialDimension; n++)
-			fermionMask.setBit(n, true);
+			fermionMask.set(n, 1);
 		break;
 	case Statistics::BoseEinstein:
 		break;
@@ -81,11 +80,11 @@ FockSpace<BitRegister>::FockSpace(
 		);
 	}
 
-	operators = new LadderOperator<BitRegister>*[hoppingAmplitudeSet->getBasisSize()];
+	operators = new LadderOperator*[hoppingAmplitudeSet->getBasisSize()];
 	for(int n = 0; n < hoppingAmplitudeSet->getBasisSize(); n++){
-/*		operators[n] = new LadderOperator<BitRegister>[2]{
-			LadderOperator<BitRegister>(
-				LadderOperator<BitRegister>::Type::Creation,
+/*		operators[n] = new LadderOperator[2]{
+			LadderOperator(
+				LadderOperator::Type::Creation,
 				statistics,
 				hoppingAmplitudeSet,
 				n,
@@ -94,8 +93,8 @@ FockSpace<BitRegister>::FockSpace(
 				*vacuumState,
 				fermionMask
 			),
-			LadderOperator<BitRegister>(
-				LadderOperator<BitRegister>::Type::Annihilation,
+			LadderOperator(
+				LadderOperator::Type::Annihilation,
 				statistics,
 				hoppingAmplitudeSet,
 				n,
@@ -105,9 +104,9 @@ FockSpace<BitRegister>::FockSpace(
 				fermionMask
 			)
 		};*/
-		operators[n] = new LadderOperator<BitRegister>[2];
-		operators[n][0] = LadderOperator<BitRegister>(
-			LadderOperator<BitRegister>::Type::Creation,
+		operators[n] = new LadderOperator[2];
+		operators[n][0] = LadderOperator(
+			LadderOperator::Type::Creation,
 			statistics,
 			hoppingAmplitudeSet,
 			n,
@@ -116,8 +115,8 @@ FockSpace<BitRegister>::FockSpace(
 			*vacuumState,
 			fermionMask
 		);
-		operators[n][1] = LadderOperator<BitRegister>(
-			LadderOperator<BitRegister>::Type::Annihilation,
+		operators[n][1] = LadderOperator(
+			LadderOperator::Type::Annihilation,
 			statistics,
 			hoppingAmplitudeSet,
 			n,
@@ -129,19 +128,19 @@ FockSpace<BitRegister>::FockSpace(
 	}
 
 /*	if(numParticles < 0){
-		fockStateMap = new DefaultFockStateMap<BitRegister>(
+		fockStateMap = new DefaultFockStateMap(
 			exponentialDimension
 		);
 	}
 	else{
-		fockStateMap = new LookupTableFockStateMap<BitRegister>(
+		fockStateMap = new LookupTableFockStateMap(
 			exponentialDimension
 		);
 
-		FockState<BitRegister> fockState = getVacuumState();
+		FockState fockState = getVacuumState();
 		for(unsigned int n = 0; n < (unsigned int)(1 << exponentialDimension); n++){
 			if(fockState.getBitRegister().getNumOneBits() == (unsigned int)numParticles)
-				((LookupTableFockStateMap<BitRegister>*)fockStateMap)->addState(fockState);
+				((LookupTableFockStateMap*)fockStateMap)->addState(fockState);
 
 			fockState.getBitRegister()++;
 		}

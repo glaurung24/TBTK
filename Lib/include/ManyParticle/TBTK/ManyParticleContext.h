@@ -66,10 +66,6 @@ public:
 	 *  wrapper. */
 	FockSpace<BitRegister>* getFockSpaceBitRegister();
 
-	/** Returns a pointer to the FockState<ExtensiveBitRegister> contained
-	 *  by the wrapper. */
-	FockSpace<ExtensiveBitRegister>* getFockSpaceExtensiveBitRegister();
-
 	/** Add rule that restricts the Fock space. */
 	void addFockStateRule(const FockStateRule::WrapperRule rule);
 
@@ -83,10 +79,7 @@ public:
 	const FockStateRuleSet& getFockStateRuleSet() const;
 private:
 	/** Pointer to FockSpace using BitRegsiter. */
-	std::shared_ptr<FockSpace<BitRegister>> brFockSpace;
-
-	/** Pointer to FockSpace using ExtensiveBitRegister. */
-	std::shared_ptr<FockSpace<ExtensiveBitRegister>> ebrFockSpace;
+	std::shared_ptr<FockSpace> FockSpace;
 
 	/** Rules specifying the relevant subspace. */
 //	std::vector<FockStateRule::WrapperRule> fockStateRules;
@@ -97,18 +90,12 @@ private:
 };
 
 inline bool ManyParticleContext::wrapsBitRegister(){
-	if(brFockSpace.get() != NULL)
+	if(FockSpace.get() != NULL)
 		return true;
 	else
 		return false;
 }
 
-inline bool ManyParticleContext::wrapsExtensiveBitRegister(){
-	if(ebrFockSpace.get() != NULL)
-		return true;
-	else
-		return false;
-}
 
 inline FockSpace<BitRegister>* ManyParticleContext::getFockSpaceBitRegister(){
 	TBTKAssert(
@@ -118,19 +105,9 @@ inline FockSpace<BitRegister>* ManyParticleContext::getFockSpaceBitRegister(){
 		<< " instead.",
 		""
 	);
-	return brFockSpace.get();
+	return FockSpace.get();
 }
 
-inline FockSpace<ExtensiveBitRegister>* ManyParticleContext::getFockSpaceExtensiveBitRegister(){
-	TBTKAssert(
-		wrapsExtensiveBitRegister(),
-		"ManyParticleContext::getFockSpaceExtensiveBitRegister()",
-		"Use ManyParticleContext::getFockSpaceBitRegister()"
-		<< " instead.",
-		""
-	);
-	return ebrFockSpace.get();
-}
 
 inline void ManyParticleContext::addFockStateRule(const FockStateRule::WrapperRule rule){
 	fockStateRuleSet.addFockStateRule(rule);

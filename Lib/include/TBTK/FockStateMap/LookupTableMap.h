@@ -31,8 +31,7 @@
 namespace TBTK{
 namespace FockStateMap{
 
-template<typename BIT_REGISTER>
-class LookupTableMap : public FockStateMap<BIT_REGISTER>{
+class LookupTableMap : public FockStateMap{
 public:
 	/** Constructor. */
 	LookupTableMap(unsigned int exponentialDimension);
@@ -45,39 +44,38 @@ public:
 
 	/** Get many-body Hilbert space index for corresponding FockState. */
 	virtual unsigned int getBasisIndex(
-		const FockState<BIT_REGISTER> &fockState
+		const FockState &fockState
 	) const;
 
 	/** Get FockState for corresponding many-body Hilbert space index. */
-	virtual FockState<BIT_REGISTER> getFockState(unsigned int index) const;
+	virtual FockState getFockState(unsigned int index) const;
 
 	/** Add state. */
-	void addState(const FockState<BIT_REGISTER> &fockState);
+	void addState(const FockState &fockState);
 private:
 	/** List of FockStates. */
-	std::vector<FockState<BIT_REGISTER>> states;
+	std::vector<FockState> states;
 };
 
-template<typename BIT_REGISTER>
-LookupTableMap<BIT_REGISTER>::LookupTableMap(
+
+LookupTableMap::LookupTableMap(
 	unsigned int exponentialDimension
 ) :
-	FockStateMap<BIT_REGISTER>(exponentialDimension)
+	FockStateMap(exponentialDimension)
 {
 }
 
-template<typename BIT_REGISTER>
-LookupTableMap<BIT_REGISTER>::~LookupTableMap(){
+
+LookupTableMap::~LookupTableMap(){
 }
 
-template<typename BIT_REGISTER>
-unsigned int LookupTableMap<BIT_REGISTER>::getBasisSize() const{
+
+unsigned int LookupTableMap::getBasisSize() const{
 	return states.size();
 }
 
-template<typename BIT_REGISTER>
-unsigned int LookupTableMap<BIT_REGISTER>::getBasisIndex(
-	const FockState<BIT_REGISTER> &fockState
+unsigned int LookupTableMap::getBasisIndex(
+	const FockState &fockState
 ) const{
 	unsigned int min = 0;
 	unsigned int max = states.size()-1;
@@ -91,22 +89,22 @@ unsigned int LookupTableMap<BIT_REGISTER>::getBasisIndex(
 			return currentState;
 	}
 	TBTKExit(
-		"LookupTableFockStateMap<BIT_REGISTER>::getBasisIndex()",
+		"LookupTableFockStateMap::getBasisIndex()",
 		"FockState not found.",
 		""
 	);
 }
 
-template<typename BIT_REGISTER>
-FockState<BIT_REGISTER> LookupTableMap<BIT_REGISTER>::getFockState(
+
+FockState LookupTableMap::getFockState(
 	unsigned int index
 ) const{
 	return states.at(index);
 }
 
-template<typename BIT_REGISTER>
-void LookupTableMap<BIT_REGISTER>::addState(
-	const FockState<BIT_REGISTER> &fockState
+
+void LookupTableMap::addState(
+	const FockState &fockState
 ){
 	if(
 		states.size() == 0

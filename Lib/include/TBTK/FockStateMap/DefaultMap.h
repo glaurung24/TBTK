@@ -31,8 +31,7 @@
 namespace TBTK{
 namespace FockStateMap{
 
-template<typename BIT_REGISTER>
-class DefaultMap : public FockStateMap<BIT_REGISTER>{
+class DefaultMap : public FockStateMap{
 public:
 	/** Constructor. */
 	DefaultMap(unsigned int exponentialDimension);
@@ -44,28 +43,28 @@ public:
 	virtual unsigned int getBasisSize() const;
 
 	/** Get many-body Hilbert space index for corresponding FockState. */
-	virtual unsigned int getBasisIndex(const FockState<BIT_REGISTER> &fockState) const;
+	virtual unsigned int getBasisIndex(const FockState &fockState) const;
 
 	/** Get FockState for corresponding many-body Hilbert space index. */
-	virtual FockState<BIT_REGISTER> getFockState(unsigned int index) const;
+	virtual FockState getFockState(unsigned int index) const;
 private:
 };
 
 template<typename BIT_REGISTER>
-DefaultMap<BIT_REGISTER>::DefaultMap(
+DefaultMap::DefaultMap(
 	unsigned int exponentialDimension
 ) :
-	FockStateMap<BIT_REGISTER>(exponentialDimension)
+	FockStateMap(exponentialDimension)
 {
 }
 
 template<typename BIT_REGISTER>
-DefaultMap<BIT_REGISTER>::~DefaultMap(){
+DefaultMap::~DefaultMap(){
 }
 
 template<typename BIT_REGISTER>
-unsigned int DefaultMap<BIT_REGISTER>::getBasisSize() const{
-	return (1 << FockStateMap<BIT_REGISTER>::getExponentialDimension());
+unsigned int DefaultMap::getBasisSize() const{
+	return (1 << FockStateMap::getExponentialDimension());
 }
 
 };	//End of namespace FockStateMap

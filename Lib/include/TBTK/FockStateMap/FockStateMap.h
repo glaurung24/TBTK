@@ -29,7 +29,6 @@
 namespace TBTK{
 namespace FockStateMap{
 
-template<typename BIT_REGISTER>
 class FockStateMap{
 public:
 	/** Constructor. */
@@ -43,11 +42,11 @@ public:
 
 	/** Get many-body Hilbert space index for corresponding FockState. */
 	virtual unsigned int getBasisIndex(
-		const FockState<BIT_REGISTER> &fockState
+		const FockState &fockState
 	) const = 0;
 
 	/** Get FockState for corresponding many-body Hilbert space index. */
-	virtual FockState<BIT_REGISTER> getFockState(
+	virtual FockState getFockState(
 		unsigned int index
 	) const = 0;
 
@@ -57,17 +56,17 @@ private:
 	unsigned int exponentialDimension;
 };
 
-template<typename BIT_REGISTER>
-FockStateMap<BIT_REGISTER>::FockStateMap(unsigned int exponentialDimension){
+
+FockStateMap::FockStateMap(unsigned int exponentialDimension){
 	this->exponentialDimension = exponentialDimension;
 }
 
-template<typename BIT_REGISTER>
-FockStateMap<BIT_REGISTER>::~FockStateMap(){
+
+FockStateMap::~FockStateMap(){
 }
 
-template<typename BIT_REGISTER>
-unsigned int FockStateMap<BIT_REGISTER>::getExponentialDimension() const{
+
+unsigned int FockStateMap::getExponentialDimension() const{
 	return exponentialDimension;
 }
 

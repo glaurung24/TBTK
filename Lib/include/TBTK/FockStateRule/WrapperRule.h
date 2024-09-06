@@ -45,12 +45,7 @@ public:
 
 	/** Implements FockStateRule::createNewRule(). */
 	virtual WrapperRule createNewRule(
-		const LadderOperator<BitRegister> &ladderOperator
-	) const;
-
-	/** Implements FockStateRule::createNewRule(). */
-	virtual WrapperRule createNewRule(
-		const LadderOperator<ExtensiveBitRegister> &ladderOperator
+		const LadderOperator &ladderOperator
 	) const;
 
 	/** Asignment operator. */
@@ -59,15 +54,8 @@ public:
 	/** Check whether a given FockState fullfills the rule with respect to
 	 *  a particular FockSpace. */
 	virtual bool isSatisfied(
-		const FockSpace<BitRegister> &fockSpace,
-		const FockState<BitRegister> &fockState
-	) const;
-
-	/** Check whether a given FockState fullfills the rule with respect to
-	 *  a particular FockSpace. */
-	virtual bool isSatisfied(
-		const FockSpace<ExtensiveBitRegister> &fockSpace,
-		const FockState<ExtensiveBitRegister> &fockState
+		const FockSpace &fockSpace,
+		const FockState &fockState
 	) const;
 
 	/** Comparison operator. */
@@ -80,13 +68,7 @@ private:
 };
 
 inline WrapperRule WrapperRule::createNewRule(
-	const LadderOperator<BitRegister> &ladderOperator
-) const{
-	return WrapperRule(fockStateRule->createNewRule(ladderOperator));
-}
-
-inline WrapperRule WrapperRule::createNewRule(
-	const LadderOperator<ExtensiveBitRegister> &ladderOperator
+	const LadderOperator &ladderOperator
 ) const{
 	return WrapperRule(fockStateRule->createNewRule(ladderOperator));
 }
@@ -97,15 +79,7 @@ inline void WrapperRule::print() const{
 
 //Note: Declared in FockStateRule.h
 inline WrapperRule operator*(
-	const LadderOperator<BitRegister> &ladderOperator,
-	const FockStateRule &fockStateRule
-){
-	return fockStateRule.createNewRule(ladderOperator);
-}
-
-//Note: Declared in FockStateRule.h
-inline WrapperRule operator*(
-	const LadderOperator<ExtensiveBitRegister> &ladderOperator,
+	const LadderOperator &ladderOperator,
 	const FockStateRule &fockStateRule
 ){
 	return fockStateRule.createNewRule(ladderOperator);

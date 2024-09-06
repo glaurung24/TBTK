@@ -25,10 +25,12 @@
 namespace TBTK{
 
 BitRegister::BitRegister(unsigned int numBits){
+	this->numBits = numBits;
+	bitRegister = boost::dynamic_bitset<>(numBits);
 }
 
 BitRegister::BitRegister(const BitRegister &bitRegister){
-	values = bitRegister.values;
+	this->bitRegister = boost::dynamic_bitset<>(bitRegister.bitRegister);
 }
 
 /*BitRegister::~BitRegister(){
