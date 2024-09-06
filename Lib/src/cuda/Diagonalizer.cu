@@ -23,6 +23,7 @@
 #include "TBTK/Streams.h"
 #include "TBTK/TBTKMacros.h"
 #include "TBTK/GPUResourceManager.h"
+#include "TBTK/OutOfDeviceMemoryException.h"
 
 #include <vector>
 #include <type_traits>
@@ -420,39 +421,38 @@ void Diagonalizer::solveGPU(complex<double>* matrix, double* eigenValues, const 
     double *eigenValues_device;
     int *info_device = nullptr;
 
-    TBTKAssert(
-        cudaMallocAsync(
+    cudaError_t device_malloc_hamiltonian = cudaMallocAsync(
             reinterpret_cast<void **>(&hamiltonian_device), 
             sizeof(data_type) * n*n,
             stream
-        ) == cudaSuccess,
-        "Diagonalizer::solveGPU()",
-        "CUDA error allocating device memory.",
-        ""
-    ) 
-    TBTKAssert(
-        cudaMallocAsync(
+        );
+        
+    cudaError_t device_malloc_eigenvalues = cudaMallocAsync(
             reinterpret_cast<void **>(&eigenValues_device),
             sizeof(double) * n,
             stream
-        ) == cudaSuccess,
-        "Diagonalizer::solveGPU()",
-        "CUDA error allocating memory on device.",
-        ""
-    ) 
-
-    TBTKAssert(
-        cudaMallocAsync(
-            reinterpret_cast<void **>(&info_device),
-             sizeof(int),
-             stream
-        ) == cudaSuccess,
-        "Diagonalizer::solveGPU()",
-        "CUDA error allocating memory on device.",
-        ""
-    )
+        );
+    cudaError_t device_malloc_info = cudaMallocAsync(
+        reinterpret_cast<void **>(&info_device),
+         sizeof(int),
+         stream
+    );
     //Copy hamiltonian to device
     cudaStreamSynchronize(stream);
+    //Check if device memory allocation worked
+    if( device_malloc_hamiltonian != cudaSuccess ||
+        device_malloc_eigenvalues != cudaSuccess ||
+        device_malloc_info != cudaSuccess
+        ){
+            throw OutOfDeviceMemoryException(
+                "Diagonalizer::solveGPU()",
+                TBTKWhere,
+                "CUDA error allocating memory on device.",
+                ""
+            );
+    }
+
+
     TBTKAssert(
         cudaMemcpyAsync(
             hamiltonian_device, 
@@ -527,15 +527,19 @@ void Diagonalizer::solveGPU(complex<double>* matrix, double* eigenValues, const 
 
     // Cuda managed memory is used, instead of device memory, as this allocation
     // can become substancial for bigger hamiltonians
-    TBTKAssert(
-        cudaMallocAsync(reinterpret_cast<void **>(&buffer_device),
+    cudaError_t device_malloc_buffer = cudaMallocAsync(
+            reinterpret_cast<void **>(&buffer_device),
             sizeBuffer_device,
             stream
-        ) == cudaSuccess,
-        "Diagonalizer::solveGPU()",
-        "Failed to allocate buffer memory on device.",
-        "" 
-    )
+        );
+    if( device_malloc_buffer != cudaSuccess ){
+            throw OutOfDeviceMemoryException(
+                "Diagonalizer::solveGPU()",
+                TBTKWhere,
+                "CUDA error allocating memory on device.",
+                ""
+            );
+    }
 
     buffer_host = malloc(sizeof(data_type) * sizeBuffer_host);
     cudaStreamSynchronize(stream);
