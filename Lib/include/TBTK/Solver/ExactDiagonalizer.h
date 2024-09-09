@@ -25,8 +25,8 @@
 #define COM_DAFER45_TBTK_SOLVER_EXACT_DIAGONALIZATION
 
 #include "TBTK/Solver/Diagonalizer.h"
-#include "TBTK/FockStateRuleSet.h"
-#include "TBTK/FockStateRule/WrapperRule.h"
+// #include "TBTK/FockStateRuleSet.h"
+// #include "TBTK/FockStateRule/WrapperRule.h"
 #include "TBTK/InteractionAmplitudeSet.h"
 #include "TBTK/Model.h"
 #include "TBTK/ManyParticleContext.h"
@@ -47,14 +47,14 @@ public:
 	/** Destructor. */
 	virtual ~ExactDiagonalizer();
 
-	/** Add FockStateRule. */
-	unsigned int addSubspace(std::initializer_list<const FockStateRule::WrapperRule> rules);
+	// /** Add FockStateRule. */
+	// unsigned int addSubspace(std::initializer_list<const FockStateRule::WrapperRule> rules);
 
-	/** Add FockStateRule. */
-	unsigned int addSubspace(std::vector<FockStateRule::WrapperRule> rules);
+	// /** Add FockStateRule. */
+	// unsigned int addSubspace(std::vector<FockStateRule::WrapperRule> rules);
 
-	/** Add FockStateRule. */
-	unsigned int addSubspace(const FockStateRuleSet &rules);
+	// /** Add FockStateRule. */
+	// unsigned int addSubspace(const FockStateRuleSet &rules);
 
 	/** Run calculation. */
 	void run(unsigned int subspace);
@@ -86,27 +86,27 @@ private:
 	 *  diagonalization solver for a specific subspace. */
 	class SubspaceContext{
 	public:
-		/** Constructor. */
-		SubspaceContext(
-			std::initializer_list<const FockStateRule::WrapperRule> rules
-		);
+		// /** Constructor. */
+		// SubspaceContext(
+		// 	std::initializer_list<const FockStateRule::WrapperRule> rules
+		// );
 
-		/** Constructor. */
-		SubspaceContext(
-			std::vector<FockStateRule::WrapperRule> rules
-		);
+		// /** Constructor. */
+		// SubspaceContext(
+		// 	std::vector<FockStateRule::WrapperRule> rules
+		// );
 
-		/** Constructor. */
-		SubspaceContext(
-			const FockStateRuleSet &rules
-		);
+		// /** Constructor. */
+		// SubspaceContext(
+		// 	const FockStateRuleSet &rules
+		// );
 
 		/** Destructor. */
 		~SubspaceContext();
 
-		/** Subspace rules. */
-//		std::vector<FockStateRule::WrapperRule> rules;
-		FockStateRuleSet fockStateRuleSet;
+// 		/** Subspace rules. */
+// //		std::vector<FockStateRule::WrapperRule> rules;
+// 		FockStateRuleSet fockStateRuleSet;
 
 		/** Pointer to many-body model. */
 //		Model *manyParticleModel;

@@ -26,7 +26,7 @@
 
 #include "TBTK/FockStateMap/FockStateMap.h"
 #include "TBTK/BitRegister.h"
-#include "TBTK/ExtensiveBitRegister.h"
+#include "TBTK/TBTKMacros.h"
 
 namespace TBTK{
 namespace FockStateMap{

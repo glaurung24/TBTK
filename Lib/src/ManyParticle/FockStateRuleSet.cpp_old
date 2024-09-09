@@ -34,8 +34,8 @@ FockStateRuleSet::~FockStateRuleSet(){
 }
 
 bool FockStateRuleSet::isSatisfied(
-	const FockSpace<BitRegister> &fockSpace,
-	const FockState<BitRegister> &fockState
+	const FockSpace &fockSpace,
+	const FockState &fockState
 ) const{
 	bool isSatisfied = true;
 	for(unsigned int n = 0; n < fockStateRules.size(); n++){
@@ -48,20 +48,6 @@ bool FockStateRuleSet::isSatisfied(
 	return isSatisfied;
 }
 
-bool FockStateRuleSet::isSatisfied(
-	const FockSpace<ExtensiveBitRegister> &fockSpace,
-	const FockState<ExtensiveBitRegister> &fockState
-) const{
-	bool isSatisfied = true;
-	for(unsigned int n = 0; n < fockStateRules.size(); n++){
-		if(!fockStateRules.at(n).isSatisfied(fockSpace, fockState)){
-			isSatisfied = false;
-			break;
-		}
-	}
-
-	return isSatisfied;
-}
 
 bool FockStateRuleSet::operator==(const FockStateRuleSet &rhs) const{
 	if(fockStateRules.size() != rhs.fockStateRules.size())

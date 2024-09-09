@@ -72,60 +72,6 @@ private:
 	int prefactor;
 };
 
-FockState::FockState(unsigned int exponentialDimension
-) :
-	bitRegister(exponentialDimension+1)
-{
-	bitRegister.clear();
-	prefactor = 1;
-}
-
-FockState::FockState(const FockState &fockState
-) :
-	bitRegister(fockState.bitRegister)
-{
-	prefactor = fockState.prefactor;
-}
-
-
-FockState::~FockState(){
-}
-
-
-bool FockState::isNull() const{
-	return bitRegister.getMostSignificantBit();
-}
-
-
-const BitRegister& FockState::getBitRegister() const{
-	return bitRegister;
-}
-
-
-BitRegister& FockState::getBitRegister(){
-	return bitRegister;
-}
-
-
-int FockState::getPrefactor() const{
-	return prefactor;
-}
-
-/*
-unsigned int FockState::getNumFermions() const{
-	return bitRegister.getNumOneBits();
-}*/
-
-
-void FockState::print() const{
-	Streams::out << prefactor << "|";
-	for(int n = bitRegister.getNumBits()-1; n >= 0; n--){
-		Streams::out << bitRegister[n];
-		if(n%8 == 0 && n != 0)
-			Streams::out << " ";
-	}
-	Streams::out << ">\n";
-}
 
 };	//End of namespace TBTK
 

@@ -44,9 +44,9 @@ WrapperRule::~WrapperRule(){
 	delete fockStateRule;
 }
 
-WrapperRule* WrapperRule::clone() const{
-	return new WrapperRule(*fockStateRule);
-}
+// WrapperRule* WrapperRule::clone() const{
+// 	return new WrapperRule(*fockStateRule);
+// }
 
 WrapperRule& WrapperRule::operator=(const WrapperRule &rhs){
 	if(this != &rhs)
@@ -56,24 +56,17 @@ WrapperRule& WrapperRule::operator=(const WrapperRule &rhs){
 }
 
 bool WrapperRule::isSatisfied(
-	const FockSpace<BitRegister> &fockSpace,
-	const FockState<BitRegister> &fockState
+	const FockSpace &fockSpace,
+	const FockState &fockState
 ) const{
 	return fockStateRule->isSatisfied(fockSpace, fockState);
 }
 
-bool WrapperRule::isSatisfied(
-	const FockSpace<ExtensiveBitRegister> &fockSpace,
-	const FockState<ExtensiveBitRegister> &fockState
-) const{
-	return fockStateRule->isSatisfied(fockSpace, fockState);
-}
-
-bool WrapperRule::operator==(const FockStateRule& rhs) const{
-	//Note the order is important here. If rhs is moved to the left, an
-	//infinite recursion will occur if the rhs is a WrapperRule.
-	return (rhs == *fockStateRule);
-}
+// bool WrapperRule::operator==(const FockStateRule& rhs) const{
+// 	//Note the order is important here. If rhs is moved to the left, an
+// 	//infinite recursion will occur if the rhs is a WrapperRule.
+// 	return (rhs == *fockStateRule);
+// }
 
 };	//End of namespace FockSpaceRule
 };	//End of namespace TBTK

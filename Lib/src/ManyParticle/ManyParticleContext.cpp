@@ -28,37 +28,36 @@ namespace TBTK{
 ManyParticleContext::ManyParticleContext(){
 }
 
-//ManyParticleContext::ManyParticleContext(FockSpace<BitRegister> *fockSpace
+//ManyParticleContext::ManyParticleContext(FockSpace *fockSpace
 ManyParticleContext::ManyParticleContext(const SingleParticleContext *singleParticleContext
 ) :
 /*	brFockSpace(fockSpace),
 	ebrFockSpace(NULL),
 	interactionAmplitudeSet(fockSpace->getHoppingAmplitudeSet())*/
-	brFockSpace(nullptr),
-	ebrFockSpace(nullptr),
+	fockSpace(nullptr),
 	interactionAmplitudeSet(nullptr)
 {
-/*	brFockSpace = make_shared<FockSpace<BitRegister>>(fockSpace);
+/*	brFockSpace = make_shared<FockSpace>(fockSpace);
 	ebrFockSpace = make_shared<FockSpace<ExtensiveBitRegister>>(NULL);*/
 	interactionAmplitudeSet.reset(new InteractionAmplitudeSet(/*&singleParticleContext->getHoppingAmplitudeSet()*/));
-	if(singleParticleContext->getHoppingAmplitudeSet().getBasisSize() < 32){	//Only 31 states can be encoded in a FockState<BitRegister>.
-		brFockSpace.reset(
-			new FockSpace<BitRegister>(
+	// if(singleParticleContext->getHoppingAmplitudeSet().getBasisSize() < 32){	//Only 31 states can be encoded in a FockState.
+		fockSpace.reset(
+			new FockSpace(
 				&singleParticleContext->getHoppingAmplitudeSet(),
 				singleParticleContext->getStatistics(),
 				1	//Only one particle per state at the moment
 			)
 		);
-	}
-	else{
-		ebrFockSpace.reset(
-			new FockSpace<ExtensiveBitRegister>(
-				&singleParticleContext->getHoppingAmplitudeSet(),
-				singleParticleContext->getStatistics(),
-				1	//Only one particle per state at the moment
-			)
-		);
-	}
+	// }
+	// else{
+	// 	ebrFockSpace.reset(
+	// 		new FockSpace<ExtensiveBitRegister>(
+	// 			&singleParticleContext->getHoppingAmplitudeSet(),
+	// 			singleParticleContext->getStatistics(),
+	// 			1	//Only one particle per state at the moment
+	// 		)
+	// 	);
+	// }
 
 	interactionAmplitudeSet.reset(
 		new InteractionAmplitudeSet(

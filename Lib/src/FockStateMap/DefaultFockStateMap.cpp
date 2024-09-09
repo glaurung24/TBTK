@@ -23,44 +23,21 @@
 namespace TBTK{
 namespace FockStateMap{
 
-template<>
-unsigned int DefaultMap<BitRegister>::getBasisIndex(
-	const FockState<BitRegister> &fockState
+unsigned int DefaultMap::getBasisIndex(
+	const FockState &fockState
 ) const{
 	const BitRegister& bitRegister = fockState.getBitRegister();
-	return bitRegister.getValues();
+	return bitRegister.to_ulong();
 }
 
-template<>
-unsigned int DefaultMap<ExtensiveBitRegister>::getBasisIndex(
-	const FockState<ExtensiveBitRegister> &fockState
-) const{
-	TBTKExit(
-		"DefaultFockStateMap<ExtensiveBitRegister>::getBasisIndex()",
-		"Function not supported for ExtensiveBitRegister.",
-		"Use BitRegister instead, or change StateMap."
-        );
-}
 
-template<>
-FockState<BitRegister> DefaultMap<BitRegister>::getFockState(
+FockState DefaultMap::getFockState(
 	unsigned int state
 ) const{
-	FockState<BitRegister> result(getExponentialDimension()+1);
-	result.getBitRegister().setValues(state);
+	FockState result(getExponentialDimension()+1);
+	result.getBitRegister() = BitRegister(result.getBitRegister().size(), state);
 
 	return result;
-}
-
-template<>
-FockState<ExtensiveBitRegister> DefaultMap<ExtensiveBitRegister>::getFockState(
-	unsigned int state
-) const{
-	TBTKExit(
-		"DefaultFockStateMap<ExtensiveBitRegister>::getFockState()",
-		"Function not supported for ExtensiveBitRegister.",
-		"Use BitRegister instead, or change StateMap."
-	);
 }
 
 };	//End of namesapce FockStateMap

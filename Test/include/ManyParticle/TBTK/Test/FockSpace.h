@@ -13,20 +13,20 @@ namespace TBTK{
 class FockSpaceTest : public ::testing::Test{
 protected:
 	Model model;
-	FockSpace<BitRegister> fockSpaceFermion;
-	FockSpace<BitRegister> fockSpaceBoson;
+	FockSpace fockSpaceFermion;
+	FockSpace fockSpaceBoson;
 
 	void SetUp() override{
 		for(unsigned int n = 0; n < 4; n++)
 			model << HoppingAmplitude(1, {n}, {n});
 		model.construct();
 
-		fockSpaceFermion = FockSpace<BitRegister>(
+		fockSpaceFermion = FockSpace(
 			&model.getHoppingAmplitudeSet(),
 			Statistics::FermiDirac,
 			1
 		);
-		fockSpaceBoson = FockSpace<BitRegister>(
+		fockSpaceBoson = FockSpace(
 			&model.getHoppingAmplitudeSet(),
 			Statistics::BoseEinstein,
 			3
@@ -36,14 +36,14 @@ protected:
 
 //TBTKFeature ManyParticle.FockSpace.copy.1 2019-11-06
 TEST_F(FockSpaceTest, copy1){
-	FockSpace<BitRegister> copy = fockSpaceFermion;
+	FockSpace copy = fockSpaceFermion;
 	EXPECT_EQ(
 		copy.getHoppingAmplitudeSet(),
 		fockSpaceFermion.getHoppingAmplitudeSet()
 	);
-	LadderOperator<BitRegister> const* const* operatorsCopy
+	LadderOperator const* const* operatorsCopy
 		= fockSpaceFermion.getOperators();
-	LadderOperator<BitRegister> const* const* operatorsOriginal
+	LadderOperator const* const* operatorsOriginal
 		= fockSpaceFermion.getOperators();
 	for(int n = 0; n < model.getBasisSize(); n++){
 		for(unsigned int c = 0; c < 2; c++){
@@ -66,15 +66,15 @@ TEST_F(FockSpaceTest, copy1){
 
 //TBTKFeature ManyParticle.FockSpace.operatorAssignment.1 2019-11-06
 TEST_F(FockSpaceTest, operatorAssignment1){
-	FockSpace<BitRegister> copy;
+	FockSpace copy;
 	copy = fockSpaceFermion;
 	EXPECT_EQ(
 		copy.getHoppingAmplitudeSet(),
 		fockSpaceFermion.getHoppingAmplitudeSet()
 	);
-	LadderOperator<BitRegister> const* const* operatorsCopy
+	LadderOperator const* const* operatorsCopy
 		= fockSpaceFermion.getOperators();
-	LadderOperator<BitRegister> const* const* operatorsOriginal
+	LadderOperator const* const* operatorsOriginal
 		= fockSpaceFermion.getOperators();
 	for(int n = 0; n < model.getBasisSize(); n++){
 		for(unsigned int c = 0; c < 2; c++){
@@ -97,16 +97,16 @@ TEST_F(FockSpaceTest, operatorAssignment1){
 
 //TBTKFeature ManyParticle.FockSpace.getOperators.1 2019-11-06
 TEST_F(FockSpaceTest, getOperators1){
-	LadderOperator<BitRegister> const* const* operators
+	LadderOperator const* const* operators
 		= fockSpaceFermion.getOperators();
 	for(int n = 0; n < model.getBasisSize(); n++){
 		EXPECT_EQ(
 			operators[n][0].getType(),
-			LadderOperator<BitRegister>::Type::Creation
+			LadderOperator::Type::Creation
 		);
 		EXPECT_EQ(
 			operators[n][1].getType(),
-			LadderOperator<BitRegister>::Type::Annihilation
+			LadderOperator::Type::Annihilation
 		);
 		EXPECT_TRUE(operators[n][0].getPhysicalIndex().equals({n}));
 		EXPECT_TRUE(operators[n][1].getPhysicalIndex().equals({n}));
@@ -115,7 +115,7 @@ TEST_F(FockSpaceTest, getOperators1){
 
 //TBTKFeature ManyParticle.FockSpace.getVacuumState.1 2019-11-06
 TEST_F(FockSpaceTest, getVacuumState1){
-	FockState<BitRegister> fockState = fockSpaceFermion.getVacuumState();
+	FockState fockState = fockSpaceFermion.getVacuumState();
 	const BitRegister &bitRegister = fockState.getBitRegister();
 	for(unsigned int n = 0; n < bitRegister.getNumBits(); n++)
 		EXPECT_FALSE(bitRegister.getBit(n));
@@ -123,10 +123,10 @@ TEST_F(FockSpaceTest, getVacuumState1){
 
 //TBTKFeature ManyParticle.FockSpace.getNumFermions.1 2019-11-06
 TEST_F(FockSpaceTest, getNumFermions1){
-	FockState<BitRegister> templateState(model.getBasisSize());
+	FockState templateState(model.getBasisSize());
 	BitRegister fermionMask(model.getBasisSize());
-	LadderOperator<BitRegister> ladderOperator0(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator0(
+		LadderOperator::Type::Creation,
 		Statistics::FermiDirac,
 		&model.getHoppingAmplitudeSet(),
 		0,
@@ -135,8 +135,8 @@ TEST_F(FockSpaceTest, getNumFermions1){
 		templateState,
 		fermionMask
 	);
-	LadderOperator<BitRegister> ladderOperator1(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator1(
+		LadderOperator::Type::Creation,
 		Statistics::FermiDirac,
 		&model.getHoppingAmplitudeSet(),
 		2,
@@ -146,7 +146,7 @@ TEST_F(FockSpaceTest, getNumFermions1){
 		fermionMask
 	);
 
-	FockState<BitRegister> fockState(model.getBasisSize());
+	FockState fockState(model.getBasisSize());
 	ladderOperator0*fockState;
 	ladderOperator1*fockState;
 
@@ -155,10 +155,10 @@ TEST_F(FockSpaceTest, getNumFermions1){
 
 //TBTKFeature ManyParticle.FockSpace.getNumFermions.2 2019-11-06
 TEST_F(FockSpaceTest, getNumFermions2){
-	FockState<BitRegister> templateState(model.getBasisSize());
+	FockState templateState(model.getBasisSize());
 	BitRegister fermionMask(model.getBasisSize());
-	LadderOperator<BitRegister> ladderOperator0(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator0(
+		LadderOperator::Type::Creation,
 		Statistics::BoseEinstein,
 		&model.getHoppingAmplitudeSet(),
 		0,
@@ -167,8 +167,8 @@ TEST_F(FockSpaceTest, getNumFermions2){
 		templateState,
 		fermionMask
 	);
-	LadderOperator<BitRegister> ladderOperator1(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator1(
+		LadderOperator::Type::Creation,
 		Statistics::BoseEinstein,
 		&model.getHoppingAmplitudeSet(),
 		2,
@@ -178,7 +178,7 @@ TEST_F(FockSpaceTest, getNumFermions2){
 		fermionMask
 	);
 
-	FockState<BitRegister> fockState(model.getBasisSize());
+	FockState fockState(model.getBasisSize());
 	ladderOperator0*fockState;
 	ladderOperator1*fockState;
 
@@ -187,10 +187,10 @@ TEST_F(FockSpaceTest, getNumFermions2){
 
 //TBTKFeature ManyParticle.FockSpace.getNumParticles.1 2019-11-06
 TEST_F(FockSpaceTest, getNumParticles1){
-	FockState<BitRegister> templateState(model.getBasisSize());
+	FockState templateState(model.getBasisSize());
 	BitRegister fermionMask(model.getBasisSize());
-	LadderOperator<BitRegister> ladderOperator0(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator0(
+		LadderOperator::Type::Creation,
 		Statistics::FermiDirac,
 		&model.getHoppingAmplitudeSet(),
 		0,
@@ -199,8 +199,8 @@ TEST_F(FockSpaceTest, getNumParticles1){
 		templateState,
 		fermionMask
 	);
-	LadderOperator<BitRegister> ladderOperator1(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator1(
+		LadderOperator::Type::Creation,
 		Statistics::FermiDirac,
 		&model.getHoppingAmplitudeSet(),
 		2,
@@ -210,7 +210,7 @@ TEST_F(FockSpaceTest, getNumParticles1){
 		fermionMask
 	);
 
-	FockState<BitRegister> fockState(model.getBasisSize());
+	FockState fockState(model.getBasisSize());
 	ladderOperator0*fockState;
 	ladderOperator1*fockState;
 
@@ -222,10 +222,10 @@ TEST_F(FockSpaceTest, getNumParticles1){
 
 //TBTKFeature ManyParticle.FockSpace.getNumParticles.2 2019-11-06
 TEST_F(FockSpaceTest, getNumParticles2){
-	FockState<BitRegister> templateState(2*model.getBasisSize());
+	FockState templateState(2*model.getBasisSize());
 	BitRegister fermionMask(2*model.getBasisSize());
-	LadderOperator<BitRegister> ladderOperator0(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator0(
+		LadderOperator::Type::Creation,
 		Statistics::BoseEinstein,
 		&model.getHoppingAmplitudeSet(),
 		0,
@@ -234,8 +234,8 @@ TEST_F(FockSpaceTest, getNumParticles2){
 		templateState,
 		fermionMask
 	);
-	LadderOperator<BitRegister> ladderOperator1(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator1(
+		LadderOperator::Type::Creation,
 		Statistics::BoseEinstein,
 		&model.getHoppingAmplitudeSet(),
 		2,
@@ -245,7 +245,7 @@ TEST_F(FockSpaceTest, getNumParticles2){
 		fermionMask
 	);
 
-	FockState<BitRegister> fockState(model.getBasisSize());
+	FockState fockState(model.getBasisSize());
 	ladderOperator0*fockState;
 	ladderOperator0*fockState;
 	ladderOperator1*fockState;
@@ -260,10 +260,10 @@ TEST_F(FockSpaceTest, getNumParticles2){
 
 //TBTKFeature ManyParticle.FockSpace.getSumParticles.1 2019-11-06
 TEST_F(FockSpaceTest, getSumParticles1){
-	FockState<BitRegister> templateState(model.getBasisSize());
+	FockState templateState(model.getBasisSize());
 	BitRegister fermionMask(model.getBasisSize());
-	LadderOperator<BitRegister> ladderOperator0(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator0(
+		LadderOperator::Type::Creation,
 		Statistics::FermiDirac,
 		&model.getHoppingAmplitudeSet(),
 		0,
@@ -272,8 +272,8 @@ TEST_F(FockSpaceTest, getSumParticles1){
 		templateState,
 		fermionMask
 	);
-	LadderOperator<BitRegister> ladderOperator1(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator1(
+		LadderOperator::Type::Creation,
 		Statistics::FermiDirac,
 		&model.getHoppingAmplitudeSet(),
 		2,
@@ -283,7 +283,7 @@ TEST_F(FockSpaceTest, getSumParticles1){
 		fermionMask
 	);
 
-	FockState<BitRegister> fockState(model.getBasisSize());
+	FockState fockState(model.getBasisSize());
 	ladderOperator0*fockState;
 	ladderOperator1*fockState;
 
@@ -293,10 +293,10 @@ TEST_F(FockSpaceTest, getSumParticles1){
 
 //TBTKFeature ManyParticle.FockSpace.getSumParticles.2 2019-11-06
 TEST_F(FockSpaceTest, getSumParticles2){
-	FockState<BitRegister> templateState(2*model.getBasisSize());
+	FockState templateState(2*model.getBasisSize());
 	BitRegister fermionMask(2*model.getBasisSize());
-	LadderOperator<BitRegister> ladderOperator0(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator0(
+		LadderOperator::Type::Creation,
 		Statistics::BoseEinstein,
 		&model.getHoppingAmplitudeSet(),
 		0,
@@ -305,8 +305,8 @@ TEST_F(FockSpaceTest, getSumParticles2){
 		templateState,
 		fermionMask
 	);
-	LadderOperator<BitRegister> ladderOperator1(
-		LadderOperator<BitRegister>::Type::Creation,
+	LadderOperator ladderOperator1(
+		LadderOperator::Type::Creation,
 		Statistics::BoseEinstein,
 		&model.getHoppingAmplitudeSet(),
 		2,
@@ -316,7 +316,7 @@ TEST_F(FockSpaceTest, getSumParticles2){
 		fermionMask
 	);
 
-	FockState<BitRegister> fockState(model.getBasisSize());
+	FockState fockState(model.getBasisSize());
 	ladderOperator0*fockState;
 	ladderOperator0*fockState;
 	ladderOperator1*fockState;
@@ -329,7 +329,7 @@ TEST_F(FockSpaceTest, getSumParticles2){
 
 //TBTKFeature ManyParticle.FockSpace.createFockStateMap.1 2019-11-06
 TEST_F(FockSpaceTest, createFockStateMap1){
-	FockStateMap::FockStateMap<BitRegister> *fockStateMap
+	FockStateMap::FockStateMap *fockStateMap
 		= fockSpaceFermion.createFockStateMap(-1);
 
 	EXPECT_EQ(fockStateMap->getBasisSize(), pow(2, model.getBasisSize()));
@@ -339,7 +339,7 @@ TEST_F(FockSpaceTest, createFockStateMap1){
 
 //TBTKFeature ManyParticle.FockSpace.createFockStateMap.2 2019-11-06
 TEST_F(FockSpaceTest, createFockStateMap2){
-	FockStateMap::FockStateMap<BitRegister> *fockStateMap
+	FockStateMap::FockStateMap *fockStateMap
 		= fockSpaceFermion.createFockStateMap(2);
 
 	const unsigned int FOUR_CHOSE_TWO = 6;
@@ -365,12 +365,12 @@ TEST_F(FockSpaceTest, createFockStateMap3){
 		1
 	);
 
-	FockStateMap::FockStateMap<BitRegister> *fockStateMap0
+	FockStateMap::FockStateMap *fockStateMap0
 		= fockSpaceFermion.createFockStateMap(differenceRule);
 
 	FockStateRuleSet fockStateRuleSet;
 	fockStateRuleSet.addFockStateRule(differenceRule);
-	FockStateMap::FockStateMap<BitRegister> *fockStateMap1
+	FockStateMap::FockStateMap *fockStateMap1
 		= fockSpaceFermion.createFockStateMap(fockStateRuleSet);
 
 	EXPECT_EQ(fockStateMap0->getBasisSize(), fockStateMap1->getBasisSize());
@@ -394,7 +394,7 @@ TEST_F(FockSpaceTest, createFockStateMap4){
 		3
 	);
 
-	FockStateMap::FockStateMap<BitRegister> *fockStateMap0
+	FockStateMap::FockStateMap *fockStateMap0
 		= fockSpaceFermion.createFockStateMap({
 			FockStateRule::WrapperRule(differenceRule),
 			FockStateRule::WrapperRule(sumRule),
@@ -403,7 +403,7 @@ TEST_F(FockSpaceTest, createFockStateMap4){
 	FockStateRuleSet fockStateRuleSet;
 	fockStateRuleSet.addFockStateRule(differenceRule);
 	fockStateRuleSet.addFockStateRule(sumRule);
-	FockStateMap::FockStateMap<BitRegister> *fockStateMap1
+	FockStateMap::FockStateMap *fockStateMap1
 		= fockSpaceFermion.createFockStateMap(fockStateRuleSet);
 
 	EXPECT_EQ(fockStateMap0->getBasisSize(), fockStateMap1->getBasisSize());
@@ -431,13 +431,13 @@ TEST_F(FockSpaceTest, createFockStateMap5){
 		FockStateRule::WrapperRule(differenceRule),
 		FockStateRule::WrapperRule(sumRule),
 	};
-	FockStateMap::FockStateMap<BitRegister> *fockStateMap0
+	FockStateMap::FockStateMap *fockStateMap0
 		= fockSpaceFermion.createFockStateMap(rules);
 
 	FockStateRuleSet fockStateRuleSet;
 	fockStateRuleSet.addFockStateRule(differenceRule);
 	fockStateRuleSet.addFockStateRule(sumRule);
-	FockStateMap::FockStateMap<BitRegister> *fockStateMap1
+	FockStateMap::FockStateMap *fockStateMap1
 		= fockSpaceFermion.createFockStateMap(fockStateRuleSet);
 
 	EXPECT_EQ(fockStateMap0->getBasisSize(), fockStateMap1->getBasisSize());
@@ -464,7 +464,7 @@ TEST_F(FockSpaceTest, createFockStateMap6){
 	FockStateRuleSet fockStateRuleSet;
 	fockStateRuleSet.addFockStateRule(differenceRule);
 	fockStateRuleSet.addFockStateRule(sumRule);
-	FockStateMap::FockStateMap<BitRegister> *fockStateMap
+	FockStateMap::FockStateMap *fockStateMap
 		= fockSpaceFermion.createFockStateMap(fockStateRuleSet);
 
 	BitRegister expectedResult[2];

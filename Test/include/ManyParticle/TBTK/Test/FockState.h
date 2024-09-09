@@ -16,13 +16,13 @@ unsigned int EXPONENTIAL_DIMENSION = 8*sizeof(unsigned int)-1;
 
 //TBTKFeature ManyParticle.FockState.construction.1 2019-11-03
 TEST(FockState, construction1){
-	FockState<BitRegister> fockState(EXPONENTIAL_DIMENSION);
+	FockState fockState(EXPONENTIAL_DIMENSION);
 	EXPECT_FLOAT_EQ(fockState.getPrefactor(), 1);
 }
 
 //TBTKFeature ManyParticle.FockState.isNull.1 2019-11-03
 TEST(FockState, isNull1){
-	FockState<BitRegister> fockState(EXPONENTIAL_DIMENSION);
+	FockState fockState(EXPONENTIAL_DIMENSION);
 	EXPECT_FALSE(fockState.isNull());
 
 	BitRegister &bitRegister = fockState.getBitRegister();
@@ -32,7 +32,7 @@ TEST(FockState, isNull1){
 
 //TBTKFeature ManyParticle.FockState.getRegister.1 2019-11-03
 TEST(FockState, getRegister1){
-	FockState<BitRegister> fockState(EXPONENTIAL_DIMENSION);
+	FockState fockState(EXPONENTIAL_DIMENSION);
 
 	BitRegister &bitRegister0 = fockState.getBitRegister();
 	BitRegister &bitRegister1 = fockState.getBitRegister();
@@ -45,7 +45,7 @@ TEST(FockState, getRegister1){
 
 //TBTKFeature ManyParticle.FockState.getRegister.2 2019-11-03
 TEST(FockState, getRegister2){
-	FockState<BitRegister> fockState(EXPONENTIAL_DIMENSION);
+	FockState fockState(EXPONENTIAL_DIMENSION);
 
 	BitRegister &bitRegister0 = fockState.getBitRegister();
 	const BitRegister &bitRegister1 = fockState.getBitRegister();
@@ -58,7 +58,7 @@ TEST(FockState, getRegister2){
 
 //TBTKFeature ManyParticle.FockState.getPrefactor.1 2019-11-03
 TEST(FockState, getPrefactor1){
-	FockState<BitRegister> fockState(EXPONENTIAL_DIMENSION);
+	FockState fockState(EXPONENTIAL_DIMENSION);
 	EXPECT_EQ(fockState.getPrefactor(), 1);
 }
 

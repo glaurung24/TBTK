@@ -24,13 +24,24 @@
 
 namespace TBTK{
 
-BitRegister::BitRegister(unsigned int numBits){
-	this->numBits = numBits;
-	bitRegister = boost::dynamic_bitset<>(numBits);
+BitRegister::BitRegister(unsigned long int numBits):
+	boost::dynamic_bitset<>(numBits)
+{
+	MOST_SIGNIFICANT_BIT_MASK = boost::dynamic_bitset<>(numBits);
+	MOST_SIGNIFICANT_BIT_MASK.set(this->size()-1, true);
 }
 
-BitRegister::BitRegister(const BitRegister &bitRegister){
-	this->bitRegister = boost::dynamic_bitset<>(bitRegister.bitRegister);
+BitRegister::BitRegister(unsigned long int numBits, unsigned long int value):
+	boost::dynamic_bitset<>(numBits, value)
+{
+	MOST_SIGNIFICANT_BIT_MASK = boost::dynamic_bitset<>(numBits);
+	MOST_SIGNIFICANT_BIT_MASK.set(this->size()-1, true);
+}
+
+BitRegister::BitRegister(const BitRegister &bitRegister) :
+	boost::dynamic_bitset<>(bitRegister)
+{
+	MOST_SIGNIFICANT_BIT_MASK.set(this->size()-1, true);
 }
 
 /*BitRegister::~BitRegister(){

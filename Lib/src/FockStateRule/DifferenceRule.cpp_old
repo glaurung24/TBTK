@@ -87,15 +87,15 @@ DifferenceRule* DifferenceRule::clone() const{
 }
 
 WrapperRule DifferenceRule::createNewRule(
-	const LadderOperator<BitRegister> &ladderOperator
+	const LadderOperator &ladderOperator
 ) const{
 	Index stateIndex = ladderOperator.getPhysicalIndex();
-	LadderOperator<BitRegister>::Type type = ladderOperator.getType();
+	LadderOperator::Type type = ladderOperator.getType();
 
 	int difference = this->difference;
 
 	int sign;
-	if(type == LadderOperator<BitRegister>::Type::Creation)
+	if(type == LadderOperator::Type::Creation)
 		sign = 1;
 	else
 		sign = -1;
@@ -117,54 +117,10 @@ WrapperRule DifferenceRule::createNewRule(
 	);
 }
 
-WrapperRule DifferenceRule::createNewRule(
-	const LadderOperator<ExtensiveBitRegister> &ladderOperator
-) const{
-	Index stateIndex = ladderOperator.getPhysicalIndex();
-	LadderOperator<ExtensiveBitRegister>::Type type = ladderOperator.getType();
-
-	int difference = this->difference;
-
-	int sign;
-	if(type == LadderOperator<ExtensiveBitRegister>::Type::Creation)
-		sign = 1;
-	else
-		sign = -1;
-
-	for(unsigned int n = 0; n < addStateIndices.size(); n++)
-		if(addStateIndices.at(n).equals(stateIndex, true))
-			difference += sign;
-
-	for(unsigned int n = 0; n < subtractStateIndices.size(); n++)
-		if(subtractStateIndices.at(n).equals(stateIndex, true))
-			difference -= sign;
-
-	return WrapperRule(
-		DifferenceRule(
-			addStateIndices,
-			subtractStateIndices,
-			difference
-		)
-	);
-}
 
 bool DifferenceRule::isSatisfied(
-	const FockSpace<BitRegister> &fockSpace,
-	const FockState<BitRegister> &fockState
-) const{
-	int counter = 0;
-	for(unsigned int n = 0; n < addStateIndices.size(); n++)
-		counter += fockSpace.getSumParticles(fockState, addStateIndices.at(n));
-
-	for(unsigned int n = 0; n < subtractStateIndices.size(); n++)
-		counter -= fockSpace.getSumParticles(fockState, subtractStateIndices.at(n));
-
-	return (counter == difference);
-}
-
-bool DifferenceRule::isSatisfied(
-	const FockSpace<ExtensiveBitRegister> &fockSpace,
-	const FockState<ExtensiveBitRegister> &fockState
+	const FockSpace &fockSpace,
+	const FockState &fockState
 ) const{
 	int counter = 0;
 	for(unsigned int n = 0; n < addStateIndices.size(); n++)

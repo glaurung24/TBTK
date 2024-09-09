@@ -26,9 +26,8 @@
 #define COM_DAFER45_TBTK_MANY_PARTICLE_CONTEXT
 
 #include "TBTK/BitRegister.h"
-#include "TBTK/ExtensiveBitRegister.h"
 #include "TBTK/FockSpace.h"
-#include "TBTK/FockStateRuleSet.h"
+// #include "TBTK/FockStateRuleSet.h"
 #include "TBTK/InteractionAmplitudeSet.h"
 #include "TBTK/SingleParticleContext.h"
 
@@ -43,7 +42,7 @@ public:
 
 	/** Constructor. The ManyParticleContext assumes ownership of the
 	 *  FockSpace and will destroy it at destrucion. */
-//	ManyParticleContext(FockSpace<BitRegister> *fockSpace);
+//	ManyParticleContext(FockSpace *fockSpace);
 	ManyParticleContext(
 		const SingleParticleContext *singleParticleContext
 	);
@@ -55,19 +54,14 @@ public:
 	/** Destructor. */
 	~ManyParticleContext();
 
-	/** Returns true if the wrapped FockState is of type BitRegister. */
-	bool wrapsBitRegister();
 
-	/** Returns true if the wrapped FockState is of type
-	 *  ExtensiveBitRegister. */
-	bool wrapsExtensiveBitRegister();
 
-	/** Returns a pointer to the FockState<BitRegister> contained by the
+	/** Returns a pointer to the FockState contained by the
 	 *  wrapper. */
-	FockSpace<BitRegister>* getFockSpaceBitRegister();
+	FockSpace* getFockSpaceBitRegister();
 
-	/** Add rule that restricts the Fock space. */
-	void addFockStateRule(const FockStateRule::WrapperRule rule);
+	// /** Add rule that restricts the Fock space. */
+	// void addFockStateRule(const FockStateRule::WrapperRule rule);
 
 	/** Add InteractionAmplitude. */
 	void addIA(InteractionAmplitude ia);
@@ -75,43 +69,29 @@ public:
 	/** Get InteractionAmplitudeSet. */
 	const InteractionAmplitudeSet* getInteractionAmplitudeSet() const;
 
-	/** Get FockStateRules. */
-	const FockStateRuleSet& getFockStateRuleSet() const;
+	// /** Get FockStateRules. */
+	// const FockStateRuleSet& getFockStateRuleSet() const;
 private:
 	/** Pointer to FockSpace using BitRegsiter. */
-	std::shared_ptr<FockSpace> FockSpace;
+	std::shared_ptr<FockSpace> fockSpace;
 
-	/** Rules specifying the relevant subspace. */
-//	std::vector<FockStateRule::WrapperRule> fockStateRules;
-	FockStateRuleSet fockStateRuleSet;
+// 	/** Rules specifying the relevant subspace. */
+// //	std::vector<FockStateRule::WrapperRule> fockStateRules;
+// 	FockStateRuleSet fockStateRuleSet;
 
 	/** Interaction amplitude set. */
 	std::shared_ptr<InteractionAmplitudeSet> interactionAmplitudeSet;
 };
 
-inline bool ManyParticleContext::wrapsBitRegister(){
-	if(FockSpace.get() != NULL)
-		return true;
-	else
-		return false;
+
+inline FockSpace* ManyParticleContext::getFockSpaceBitRegister(){
+	return fockSpace.get();
 }
 
 
-inline FockSpace<BitRegister>* ManyParticleContext::getFockSpaceBitRegister(){
-	TBTKAssert(
-		wrapsBitRegister(),
-		"ManyParticleContext::getFockSpaceBitRegister()",
-		"Use ManyParticleContext::getFockSpaceExtensiveBitRegister()"
-		<< " instead.",
-		""
-	);
-	return FockSpace.get();
-}
-
-
-inline void ManyParticleContext::addFockStateRule(const FockStateRule::WrapperRule rule){
-	fockStateRuleSet.addFockStateRule(rule);
-}
+// inline void ManyParticleContext::addFockStateRule(const FockStateRule::WrapperRule rule){
+// 	fockStateRuleSet.addFockStateRule(rule);
+// }
 
 inline void ManyParticleContext::addIA(InteractionAmplitude ia){
 	interactionAmplitudeSet.get()->addIA(ia);
@@ -121,9 +101,9 @@ inline const InteractionAmplitudeSet* ManyParticleContext::getInteractionAmplitu
 	return interactionAmplitudeSet.get();
 }
 
-inline const FockStateRuleSet& ManyParticleContext::getFockStateRuleSet() const{
-	return fockStateRuleSet;
-}
+// inline const FockStateRuleSet& ManyParticleContext::getFockStateRuleSet() const{
+// 	return fockStateRuleSet;
+// }
 
 };	//End of namespace TBTK
 

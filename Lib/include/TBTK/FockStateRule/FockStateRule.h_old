@@ -26,12 +26,11 @@
 
 #include "TBTK/FockState.h"
 #include "TBTK/BitRegister.h"
-#include "TBTK/ExtensiveBitRegister.h"
 #include "TBTK/LadderOperator.h"
+// #include "TBTK/FockStateRule/WrapperRule.h"
 
 namespace TBTK{
 
-template<typename BIT_REGISTER>
 class FockSpace;
 
 namespace FockStateRule{
@@ -64,27 +63,15 @@ public:
 	/** Create a new rule that describes the space the state is in after
 	 *  the given ladder operator has been applied to the state. */
 	virtual WrapperRule createNewRule(
-		const LadderOperator<BitRegister> &ladderOperator
+		const LadderOperator &ladderOperator
 	) const = 0;
 
-	/** Create a new rule that describes the space the state is in after
-	 *  the given ladder operator has been applied to the state. */
-	virtual WrapperRule createNewRule(
-		const LadderOperator<ExtensiveBitRegister> &ladderOperator
-	) const = 0;
 
 	/** Check whether a given FockState fullfills the rule with respect to
 	 *  a particular FockSpace. */
 	virtual bool isSatisfied(
-		const FockSpace<BitRegister> &fockSpace,
-		const FockState<BitRegister> &fockState
-	) const = 0;
-
-	/** Check whether a given FockState fullfills the rule with respect to
-	 *  a particular FockSpace. */
-	virtual bool isSatisfied(
-		const FockSpace<ExtensiveBitRegister> &fockSpace,
-		const FockState<ExtensiveBitRegister> &fockState
+		const FockSpace &fockSpace,
+		const FockState &fockState
 	) const = 0;
 
 	/** Comparison operator. */
@@ -97,18 +84,7 @@ public:
 	 * Note: Implemented in Wrapper.h to await complete definition of
 	 * WrapperRule. */
 	friend WrapperRule operator*(
-		const LadderOperator<BitRegister> &ladderOperator,
-		const FockStateRule &fockStateRule
-	);
-
-	/** Multiplication operator between a LadderOperator and a
-	 *  FockStateRule. Alternative notation for
-	 *  FockStateRule::createNewRule().
-	 *
-	 * Note: Implemented in Wrapper.h to await complete definition of
-	 * WrapperRule. */
-	friend WrapperRule operator*(
-		const LadderOperator<ExtensiveBitRegister> &ladderOperator,
+		const LadderOperator &ladderOperator,
 		const FockStateRule &fockStateRule
 	);
 

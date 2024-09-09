@@ -19,305 +19,314 @@ Property::GreensFunction* ExactDiagonalizer::calculateGreensFunction(
 	Index from,
 	Property::GreensFunction::Type type
 ){
-	double lowerBound = getLowerBound();
-	double upperBound = getUpperBound();
-	int energyResolution = getEnergyResolution();
+	TBTKExit(
+		"PropertyExtractor::ExactDiagonalizer::calculateGreensFunction()",
+		"Implementation error",
+		""
+	);
+	// double lowerBound = getLowerBound();
+	// double upperBound = getUpperBound();
+	// int energyResolution = getEnergyResolution();
 
-	IndexTree memoryLayout;
-	memoryLayout.add({to, from});
-	memoryLayout.generateLinearMap();
+	// IndexTree memoryLayout;
+	// memoryLayout.add({to, from});
+	// memoryLayout.generateLinearMap();
 
-	switch(type){
-	case Property::GreensFunction::Type::Principal:
-	{
-		Property::GreensFunction *greensFunctionA = calculateGreensFunction(
-			to,
-			from,
-			Property::GreensFunction::Type::Advanced
-		);
+	// switch(type){
+	// case Property::GreensFunction::Type::Principal:
+	// {
+	// 	Property::GreensFunction *greensFunctionA = calculateGreensFunction(
+	// 		to,
+	// 		from,
+	// 		Property::GreensFunction::Type::Advanced
+	// 	);
 
-		Property::GreensFunction *greensFunctionR = calculateGreensFunction(
-			to,
-			from,
-			Property::GreensFunction::Type::Retarded
-		);
+	// 	Property::GreensFunction *greensFunctionR = calculateGreensFunction(
+	// 		to,
+	// 		from,
+	// 		Property::GreensFunction::Type::Retarded
+	// 	);
 
-		const std::vector<complex<double>> &greensFunctionAData
-			= greensFunctionA->getData();
-		const std::vector<complex<double>> &greensFunctionRData
-			= greensFunctionR->getData();
+	// 	const std::vector<complex<double>> &greensFunctionAData
+	// 		= greensFunctionA->getData();
+	// 	const std::vector<complex<double>> &greensFunctionRData
+	// 		= greensFunctionR->getData();
 
-		complex<double> *greensFunctionData = new complex<double>[energyResolution];
-		for(int n = 0; n < energyResolution; n++)
-			greensFunctionData[n] = (greensFunctionAData[n] + greensFunctionRData[n])/2.;
+	// 	complex<double> *greensFunctionData = new complex<double>[energyResolution];
+	// 	for(int n = 0; n < energyResolution; n++)
+	// 		greensFunctionData[n] = (greensFunctionAData[n] + greensFunctionRData[n])/2.;
 
-		delete greensFunctionA;
-		delete greensFunctionR;
+	// 	delete greensFunctionA;
+	// 	delete greensFunctionR;
 
-		Property::GreensFunction *greensFunction = new Property::GreensFunction(
-			memoryLayout,
-			type,
-			lowerBound,
-			upperBound,
-			energyResolution,
-			greensFunctionData
-		);
+	// 	Property::GreensFunction *greensFunction = new Property::GreensFunction(
+	// 		memoryLayout,
+	// 		type,
+	// 		lowerBound,
+	// 		upperBound,
+	// 		energyResolution,
+	// 		greensFunctionData
+	// 	);
 
-		delete [] greensFunctionData;
+	// 	delete [] greensFunctionData;
 
-		return greensFunction;
-	}
-	case Property::GreensFunction::Type::NonPrincipal:
-	{
-		Property::GreensFunction *greensFunctionA = calculateGreensFunction(
-			to,
-			from,
-			Property::GreensFunction::Type::Advanced
-		);
+	// 	return greensFunction;
+	// }
+	// case Property::GreensFunction::Type::NonPrincipal:
+	// {
+	// 	Property::GreensFunction *greensFunctionA = calculateGreensFunction(
+	// 		to,
+	// 		from,
+	// 		Property::GreensFunction::Type::Advanced
+	// 	);
 
-		Property::GreensFunction *greensFunctionR = calculateGreensFunction(
-			to,
-			from,
-			Property::GreensFunction::Type::Retarded
-		);
+	// 	Property::GreensFunction *greensFunctionR = calculateGreensFunction(
+	// 		to,
+	// 		from,
+	// 		Property::GreensFunction::Type::Retarded
+	// 	);
 
-		const std::vector<complex<double>> &greensFunctionAData
-			= greensFunctionA->getData();
-		const std::vector<complex<double>> &greensFunctionRData
-			= greensFunctionR->getData();
+	// 	const std::vector<complex<double>> &greensFunctionAData
+	// 		= greensFunctionA->getData();
+	// 	const std::vector<complex<double>> &greensFunctionRData
+	// 		= greensFunctionR->getData();
 
-		complex<double> *greensFunctionData
-			= new complex<double>[energyResolution];
-		for(int n = 0; n < energyResolution; n++)
-			greensFunctionData[n] = (greensFunctionAData[n] - greensFunctionRData[n])/2.;
+	// 	complex<double> *greensFunctionData
+	// 		= new complex<double>[energyResolution];
+	// 	for(int n = 0; n < energyResolution; n++)
+	// 		greensFunctionData[n] = (greensFunctionAData[n] - greensFunctionRData[n])/2.;
 
-		delete greensFunctionA;
-		delete greensFunctionR;
+	// 	delete greensFunctionA;
+	// 	delete greensFunctionR;
 
-		Property::GreensFunction *greensFunction = new Property::GreensFunction(
-			memoryLayout,
-			type,
-			lowerBound,
-			upperBound,
-			energyResolution,
-			greensFunctionData
-		);
+	// 	Property::GreensFunction *greensFunction = new Property::GreensFunction(
+	// 		memoryLayout,
+	// 		type,
+	// 		lowerBound,
+	// 		upperBound,
+	// 		energyResolution,
+	// 		greensFunctionData
+	// 	);
 
-		delete [] greensFunctionData;
+	// 	delete [] greensFunctionData;
 
-		return greensFunction;
-	}
-	default:
-		break;
-	}
+	// 	return greensFunction;
+	// }
+	// default:
+	// 	break;
+	// }
 
-	ManyParticleContext *manyParticleContext = edSolver->getModel().getManyParticleContext();
+	// ManyParticleContext *manyParticleContext = edSolver->getModel().getManyParticleContext();
 
-	const FockStateRuleSet ruleSet0 = manyParticleContext->getFockStateRuleSet();
-	unsigned int subspaceID0 = edSolver->addSubspace(ruleSet0);
+	// // const FockStateRuleSet ruleSet0 = manyParticleContext->getFockStateRuleSet();
+	// // unsigned int subspaceID0 = edSolver->addSubspace(ruleSet0);
+	// TBTKExit(
+	// 	"PropertyExtractor::ExactDiagonalizer::calculateGreensFunction()",
+	// 	"Implentation error",
+	// 	""
+	// );
 
-	unsigned int subspaceID1;
-	if(manyParticleContext->wrapsBitRegister()){
-		const FockSpace<BitRegister> *fockSpace = manyParticleContext->getFockSpaceBitRegister();
-		const HoppingAmplitudeSet *hoppingAmplitudeSet = fockSpace->getHoppingAmplitudeSet();
-		LadderOperator<BitRegister> const* const* operators = fockSpace->getOperators();
-		const LadderOperator<BitRegister> *fromOperator;
-		const LadderOperator<BitRegister> *toOperator;
-		double energySign = 0;
-		switch(type){
-		case Property::GreensFunction::Type::Retarded:
-			fromOperator = &operators[hoppingAmplitudeSet->getBasisIndex(from)][0];
-			toOperator = &operators[hoppingAmplitudeSet->getBasisIndex(to)][1];
-			energySign = 1.;
-			break;
-		case Property::GreensFunction::Type::Advanced:
-			fromOperator = &operators[hoppingAmplitudeSet->getBasisIndex(from)][1];
-			toOperator = &operators[hoppingAmplitudeSet->getBasisIndex(to)][0];
-			energySign = -1.;
-			break;
-		default:
-			TBTKExit(
-				"PropertyExtractor::ExactDiagonalizer::calculateGreensFunction()",
-				"Only support for ChebyshevSolver::GreensFunctionType::Retarded implemented so far.",
-				""
-			);
-		}
+	// unsigned int subspaceID1;
+	// const FockSpace *fockSpace = manyParticleContext->getFockSpaceBitRegister();
+	// const HoppingAmplitudeSet *hoppingAmplitudeSet = fockSpace->getHoppingAmplitudeSet();
+	// LadderOperator const* const* operators = fockSpace->getOperators();
+	// const LadderOperator *fromOperator;
+	// const LadderOperator *toOperator;
+	// double energySign = 0;
+	// switch(type){
+	// case Property::GreensFunction::Type::Retarded:
+	// 	fromOperator = &operators[hoppingAmplitudeSet->getBasisIndex(from)][0];
+	// 	toOperator = &operators[hoppingAmplitudeSet->getBasisIndex(to)][1];
+	// 	energySign = 1.;
+	// 	break;
+	// case Property::GreensFunction::Type::Advanced:
+	// 	fromOperator = &operators[hoppingAmplitudeSet->getBasisIndex(from)][1];
+	// 	toOperator = &operators[hoppingAmplitudeSet->getBasisIndex(to)][0];
+	// 	energySign = -1.;
+	// 	break;
+	// default:
+	// 	TBTKExit(
+	// 		"PropertyExtractor::ExactDiagonalizer::calculateGreensFunction()",
+	// 		"Only support for ChebyshevSolver::GreensFunctionType::Retarded implemented so far.",
+	// 		""
+	// 	);
+	// }
 
-		FockStateRuleSet ruleSet1 = (*fromOperator)*ruleSet0;
-		subspaceID1 = edSolver->addSubspace(ruleSet1);
+	// FockStateRuleSet ruleSet1 = (*fromOperator)*ruleSet0;
+	// subspaceID1 = edSolver->addSubspace(ruleSet1);
 
-		edSolver->run(subspaceID0);
-		edSolver->run(subspaceID1);
 
-		FockStateMap::FockStateMap<BitRegister> *fockStateMap0 = fockSpace->createFockStateMap(
-			ruleSet0
-		);
-		FockStateMap::FockStateMap<BitRegister> *fockStateMap1 = fockSpace->createFockStateMap(
-			ruleSet1
-		);
+	// edSolver->run(subspaceID0);
+	// edSolver->run(subspaceID1);
 
-		complex<double> *greensFunctionData = new complex<double>[energyResolution];
-		for(int n = 0; n < energyResolution; n++)
-			greensFunctionData[n] = 0;
+	// FockStateMap::FockStateMap *fockStateMap0 = fockSpace->createFockStateMap(
+	// 	ruleSet0
+	// );
+	// FockStateMap::FockStateMap *fockStateMap1 = fockSpace->createFockStateMap(
+	// 	ruleSet1
+	// );
 
-		double groundStateEnergy = edSolver->getEigenValue(subspaceID0, 0);
-		for(unsigned int n = 0; n < fockStateMap1->getBasisSize(); n++){
-			double E = edSolver->getEigenValue(subspaceID1, n);
+	// complex<double> *greensFunctionData = new complex<double>[energyResolution];
+	// for(int n = 0; n < energyResolution; n++)
+	// 	greensFunctionData[n] = 0;
 
-			complex<double> amplitude0 = 0.;
-			for(unsigned int c = 0; c < fockStateMap0->getBasisSize(); c++){
-				FockState<BitRegister> psi = fockStateMap0->getFockState(c);
-				(*fromOperator)*psi;
-				if(psi.isNull())
-					continue;
+	// double groundStateEnergy = edSolver->getEigenValue(subspaceID0, 0);
+	// for(unsigned int n = 0; n < fockStateMap1->getBasisSize(); n++){
+	// 	double E = edSolver->getEigenValue(subspaceID1, n);
 
-				unsigned int subspace1Index = fockStateMap1->getBasisIndex(psi);
+	// 	complex<double> amplitude0 = 0.;
+	// 	for(unsigned int c = 0; c < fockStateMap0->getBasisSize(); c++){
+	// 		FockState psi = fockStateMap0->getFockState(c);
+	// 		(*fromOperator)*psi;
+	// 		if(psi.isNull())
+	// 			continue;
 
-				complex<double> a0 = edSolver->getAmplitude(subspaceID0, 0, {(int)c});
-				complex<double> a1 = edSolver->getAmplitude(subspaceID1, n, {(int)subspace1Index});
+	// 		unsigned int subspace1Index = fockStateMap1->getBasisIndex(psi);
 
-				amplitude0 += conj(a1)*a0*(double)psi.getPrefactor();
-			}
-			complex<double> amplitude1 = 0.;
-			for(unsigned int c = 0; c < fockStateMap1->getBasisSize(); c++){
-				FockState<BitRegister> psi = fockStateMap1->getFockState(c);
-				(*toOperator)*psi;
-				if(psi.isNull())
-					continue;
+	// 		complex<double> a0 = edSolver->getAmplitude(subspaceID0, 0, {(int)c});
+	// 		complex<double> a1 = edSolver->getAmplitude(subspaceID1, n, {(int)subspace1Index});
 
-				unsigned int subspace0Index = fockStateMap0->getBasisIndex(psi);
+	// 		amplitude0 += conj(a1)*a0*(double)psi.getPrefactor();
+	// 	}
+	// 	complex<double> amplitude1 = 0.;
+	// 	for(unsigned int c = 0; c < fockStateMap1->getBasisSize(); c++){
+	// 		FockState psi = fockStateMap1->getFockState(c);
+	// 		(*toOperator)*psi;
+	// 		if(psi.isNull())
+	// 			continue;
 
-				complex<double> a0 = edSolver->getAmplitude(subspaceID1, n, {(int)c});
-				complex<double> a1 = edSolver->getAmplitude(subspaceID0, 0, {(int)subspace0Index});
+	// 		unsigned int subspace0Index = fockStateMap0->getBasisIndex(psi);
 
-				amplitude1 += conj(a1)*a0*(double)psi.getPrefactor();
-			}
+	// 		complex<double> a0 = edSolver->getAmplitude(subspaceID1, n, {(int)c});
+	// 		complex<double> a1 = edSolver->getAmplitude(subspaceID0, 0, {(int)subspace0Index});
 
-			int e = energyResolution*((-lowerBound + energySign*(E - groundStateEnergy))/(upperBound - lowerBound));
-			if(e >= 0 && e < energyResolution)
-				greensFunctionData[e] += amplitude1*amplitude0;
-		}
+	// 		amplitude1 += conj(a1)*a0*(double)psi.getPrefactor();
+	// 	}
 
-		for(int n = 0; n < energyResolution; n++)
-			greensFunctionData[n] *= -i;
+	// 	int e = energyResolution*((-lowerBound + energySign*(E - groundStateEnergy))/(upperBound - lowerBound));
+	// 	if(e >= 0 && e < energyResolution)
+	// 		greensFunctionData[e] += amplitude1*amplitude0;
 
-		Property::GreensFunction *greensFunction = new Property::GreensFunction(
-			memoryLayout,
-			type,
-			lowerBound,
-			upperBound,
-			energyResolution,
-			greensFunctionData
-		);
+	// 	for(int n = 0; n < energyResolution; n++)
+	// 		greensFunctionData[n] *= -i;
 
-		delete [] greensFunctionData;
+	// 	Property::GreensFunction *greensFunction = new Property::GreensFunction(
+	// 		memoryLayout,
+	// 		type,
+	// 		lowerBound,
+	// 		upperBound,
+	// 		energyResolution,
+	// 		greensFunctionData
+	// 	);
 
-		return greensFunction;
-	}
-	else if(manyParticleContext->wrapsExtensiveBitRegister()){
-		const FockSpace<ExtensiveBitRegister> *fockSpace = manyParticleContext->getFockSpaceExtensiveBitRegister();
-		const HoppingAmplitudeSet *hoppingAmplitudeSet = fockSpace->getHoppingAmplitudeSet();
-		LadderOperator<ExtensiveBitRegister> const* const* operators = fockSpace->getOperators();
-		const LadderOperator<ExtensiveBitRegister> *fromOperator;
-		const LadderOperator<ExtensiveBitRegister> *toOperator;
-		double energySign = 0;
-		switch(type){
-		case Property::GreensFunction::Type::Retarded:
-			fromOperator = &operators[hoppingAmplitudeSet->getBasisIndex(from)][0];
-			toOperator = &operators[hoppingAmplitudeSet->getBasisIndex(to)][1];
-			energySign = 1.;
-			break;
-		case Property::GreensFunction::Type::Advanced:
-			fromOperator = &operators[hoppingAmplitudeSet->getBasisIndex(from)][1];
-			toOperator = &operators[hoppingAmplitudeSet->getBasisIndex(to)][0];
-			energySign = -1.;
-			break;
-		default:
-			TBTKExit(
-				"PropertyExtractor::ExactDiagonalizer::calculateGreensFunction()",
-				"Only support for ChebyshevSolver::GreensFunctionType::Retarded implemented so far.",
-				""
-			);
-		}
+	// 	delete [] greensFunctionData;
 
-		FockStateRuleSet ruleSet1 = (*fromOperator)*ruleSet0;
-		subspaceID1 = edSolver->addSubspace(ruleSet1);
+	// 	return greensFunction;
+	// }
+	// else if(manyParticleContext->wrapsExtensiveBitRegister()){
+	// 	const FockSpace<ExtensiveBitRegister> *fockSpace = manyParticleContext->getFockSpaceExtensiveBitRegister();
+	// 	const HoppingAmplitudeSet *hoppingAmplitudeSet = fockSpace->getHoppingAmplitudeSet();
+	// 	LadderOperator<ExtensiveBitRegister> const* const* operators = fockSpace->getOperators();
+	// 	const LadderOperator<ExtensiveBitRegister> *fromOperator;
+	// 	const LadderOperator<ExtensiveBitRegister> *toOperator;
+	// 	double energySign = 0;
+	// 	switch(type){
+	// 	case Property::GreensFunction::Type::Retarded:
+	// 		fromOperator = &operators[hoppingAmplitudeSet->getBasisIndex(from)][0];
+	// 		toOperator = &operators[hoppingAmplitudeSet->getBasisIndex(to)][1];
+	// 		energySign = 1.;
+	// 		break;
+	// 	case Property::GreensFunction::Type::Advanced:
+	// 		fromOperator = &operators[hoppingAmplitudeSet->getBasisIndex(from)][1];
+	// 		toOperator = &operators[hoppingAmplitudeSet->getBasisIndex(to)][0];
+	// 		energySign = -1.;
+	// 		break;
+	// 	default:
+	// 		TBTKExit(
+	// 			"PropertyExtractor::ExactDiagonalizer::calculateGreensFunction()",
+	// 			"Only support for ChebyshevSolver::GreensFunctionType::Retarded implemented so far.",
+	// 			""
+	// 		);
+	// 	}
 
-		edSolver->run(subspaceID0);
-		edSolver->run(subspaceID1);
+	// 	FockStateRuleSet ruleSet1 = (*fromOperator)*ruleSet0;
+	// 	subspaceID1 = edSolver->addSubspace(ruleSet1);
 
-		FockStateMap::FockStateMap<ExtensiveBitRegister> *fockStateMap0 = fockSpace->createFockStateMap(
-			ruleSet0
-		);
-		FockStateMap::FockStateMap<ExtensiveBitRegister> *fockStateMap1 = fockSpace->createFockStateMap(
-			ruleSet1
-		);
+	// 	edSolver->run(subspaceID0);
+	// 	edSolver->run(subspaceID1);
 
-		complex<double> *greensFunctionData = new complex<double>[energyResolution];
-		for(int n = 0; n < energyResolution; n++)
-			greensFunctionData[n] = 0;
+	// 	FockStateMap::FockStateMap<ExtensiveBitRegister> *fockStateMap0 = fockSpace->createFockStateMap(
+	// 		ruleSet0
+	// 	);
+	// 	FockStateMap::FockStateMap<ExtensiveBitRegister> *fockStateMap1 = fockSpace->createFockStateMap(
+	// 		ruleSet1
+	// 	);
 
-		double groundStateEnergy = edSolver->getEigenValue(subspaceID0, 0);
-		for(unsigned int n = 0; n < fockStateMap1->getBasisSize(); n++){
-			double E = edSolver->getEigenValue(subspaceID1, n);
+	// 	complex<double> *greensFunctionData = new complex<double>[energyResolution];
+	// 	for(int n = 0; n < energyResolution; n++)
+	// 		greensFunctionData[n] = 0;
 
-			complex<double> amplitude0 = 0.;
-			for(unsigned int c = 0; c < fockStateMap0->getBasisSize(); c++){
-				FockState<ExtensiveBitRegister> psi = fockStateMap0->getFockState(c);
-				(*fromOperator)*psi;
-				if(psi.isNull())
-					continue;
+	// 	double groundStateEnergy = edSolver->getEigenValue(subspaceID0, 0);
+	// 	for(unsigned int n = 0; n < fockStateMap1->getBasisSize(); n++){
+	// 		double E = edSolver->getEigenValue(subspaceID1, n);
 
-				unsigned int subspace1Index = fockStateMap1->getBasisIndex(psi);
+	// 		complex<double> amplitude0 = 0.;
+	// 		for(unsigned int c = 0; c < fockStateMap0->getBasisSize(); c++){
+	// 			FockState<ExtensiveBitRegister> psi = fockStateMap0->getFockState(c);
+	// 			(*fromOperator)*psi;
+	// 			if(psi.isNull())
+	// 				continue;
 
-				complex<double> a0 = edSolver->getAmplitude(subspaceID0, 0, {(int)c});
-				complex<double> a1 = edSolver->getAmplitude(subspaceID1, n, {(int)subspace1Index});
+	// 			unsigned int subspace1Index = fockStateMap1->getBasisIndex(psi);
 
-				amplitude0 += conj(a1)*a0*(double)psi.getPrefactor();
-			}
-			complex<double> amplitude1 = 0.;
-			for(unsigned int c = 0; c < fockStateMap1->getBasisSize(); c++){
-				FockState<ExtensiveBitRegister> psi = fockStateMap1->getFockState(c);
-				(*toOperator)*psi;
-				if(psi.isNull())
-					continue;
+	// 			complex<double> a0 = edSolver->getAmplitude(subspaceID0, 0, {(int)c});
+	// 			complex<double> a1 = edSolver->getAmplitude(subspaceID1, n, {(int)subspace1Index});
 
-				unsigned int subspace0Index = fockStateMap0->getBasisIndex(psi);
+	// 			amplitude0 += conj(a1)*a0*(double)psi.getPrefactor();
+	// 		}
+	// 		complex<double> amplitude1 = 0.;
+	// 		for(unsigned int c = 0; c < fockStateMap1->getBasisSize(); c++){
+	// 			FockState<ExtensiveBitRegister> psi = fockStateMap1->getFockState(c);
+	// 			(*toOperator)*psi;
+	// 			if(psi.isNull())
+	// 				continue;
 
-				complex<double> a0 = edSolver->getAmplitude(subspaceID1, n, {(int)c});
-				complex<double> a1 = edSolver->getAmplitude(subspaceID0, 0, {(int)subspace0Index});
+	// 			unsigned int subspace0Index = fockStateMap0->getBasisIndex(psi);
 
-				amplitude1 += conj(a1)*a0*(double)psi.getPrefactor();
-			}
+	// 			complex<double> a0 = edSolver->getAmplitude(subspaceID1, n, {(int)c});
+	// 			complex<double> a1 = edSolver->getAmplitude(subspaceID0, 0, {(int)subspace0Index});
 
-			int e = energyResolution*((-lowerBound + energySign*(E - groundStateEnergy))/(upperBound - lowerBound));
-			if(e >= 0 && e < energyResolution)
-				greensFunctionData[e] += amplitude1*amplitude0;
-		}
+	// 			amplitude1 += conj(a1)*a0*(double)psi.getPrefactor();
+	// 		}
 
-		for(int n = 0; n < energyResolution; n++)
-			greensFunctionData[n] *= -i;
+	// 		int e = energyResolution*((-lowerBound + energySign*(E - groundStateEnergy))/(upperBound - lowerBound));
+	// 		if(e >= 0 && e < energyResolution)
+	// 			greensFunctionData[e] += amplitude1*amplitude0;
+	// 	}
 
-		Property::GreensFunction *greensFunction = new Property::GreensFunction(
-			memoryLayout,
-			type,
-			lowerBound,
-			upperBound,
-			energyResolution,
-			greensFunctionData
-		);
+	// 	for(int n = 0; n < energyResolution; n++)
+	// 		greensFunctionData[n] *= -i;
 
-		delete [] greensFunctionData;
+	// 	Property::GreensFunction *greensFunction = new Property::GreensFunction(
+	// 		memoryLayout,
+	// 		type,
+	// 		lowerBound,
+	// 		upperBound,
+	// 		energyResolution,
+	// 		greensFunctionData
+	// 	);
 
-		return greensFunction;
-	}
-	else{
-		TBTKExit(
-			"PropertyExtractor::ExactDiagonalizer::calculateGreensFunction()",
-			"Unknown BitRegister type.",
-			""
-		);
-	}
+	// 	delete [] greensFunctionData;
+
+	// 	return greensFunction;
+	// }
+	// else{
+	// 	TBTKExit(
+	// 		"PropertyExtractor::ExactDiagonalizer::calculateGreensFunction()",
+	// 		"Unknown BitRegister type.",
+	// 		""
+	// 	);
+	// }
 }
 
 complex<double> ExactDiagonalizer::calculateExpectationValue(

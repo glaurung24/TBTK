@@ -64,15 +64,15 @@ SumRule* SumRule::clone() const{
 }
 
 WrapperRule SumRule::createNewRule(
-	const LadderOperator<BitRegister> &ladderOperator
+	const LadderOperator &ladderOperator
 ) const{
 	Index stateIndex = ladderOperator.getPhysicalIndex();
-	LadderOperator<BitRegister>::Type type = ladderOperator.getType();
+	LadderOperator::Type type = ladderOperator.getType();
 
 	int numParticles = this->numParticles;
 
 	int sign = 0;
-	if(type == LadderOperator<BitRegister>::Type::Creation)
+	if(type == LadderOperator::Type::Creation)
 		sign = 1;
 	else
 		sign = -1;
@@ -84,30 +84,10 @@ WrapperRule SumRule::createNewRule(
 	return WrapperRule(SumRule(stateIndices, numParticles));
 }
 
-WrapperRule SumRule::createNewRule(
-	const LadderOperator<ExtensiveBitRegister> &ladderOperator
-) const{
-	Index stateIndex = ladderOperator.getPhysicalIndex();
-	LadderOperator<ExtensiveBitRegister>::Type type = ladderOperator.getType();
-
-	int numParticles = this->numParticles;
-
-	int sign = 0;
-	if(type == LadderOperator<ExtensiveBitRegister>::Type::Creation)
-		sign = 1;
-	else
-		sign = -1;
-
-	for(unsigned int n = 0; n < stateIndices.size(); n++)
-		if(stateIndices.at(n).equals(stateIndex, true))
-			numParticles += sign;
-
-	return WrapperRule(SumRule(stateIndices, numParticles));
-}
 
 bool SumRule::isSatisfied(
-	const FockSpace<BitRegister> &fockSpace,
-	const FockState<BitRegister> &fockState
+	const FockSpace &fockSpace,
+	const FockState &fockState
 ) const{
 	int counter = 0;
 	for(unsigned int n = 0; n < stateIndices.size(); n++)
@@ -116,16 +96,6 @@ bool SumRule::isSatisfied(
 	return (counter == numParticles);
 }
 
-bool SumRule::isSatisfied(
-	const FockSpace<ExtensiveBitRegister> &fockSpace,
-	const FockState<ExtensiveBitRegister> &fockState
-) const{
-	int counter = 0;
-	for(unsigned int n = 0; n < stateIndices.size(); n++)
-		counter += fockSpace.getSumParticles(fockState, stateIndices.at(n));
-
-	return (counter == numParticles);
-}
 
 bool SumRule::operator==(const FockStateRule &rhs) const{
 	switch(rhs.getFockStateRuleID()){

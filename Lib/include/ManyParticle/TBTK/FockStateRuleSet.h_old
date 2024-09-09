@@ -25,12 +25,13 @@
 #define COM_DAFER45_TBTK_FOCK_STATE_RULE_SET
 
 #include "TBTK/FockStateRule/FockStateRule.h"
-#include "TBTK/FockStateRule/WrapperRule.h"
+// #include "TBTK/FockStateRule/WrapperRule.h"
+#include "TBTK/FockSpace.h"
 
 #include <vector>
 
 namespace TBTK{
-
+class FockSpace;
 class FockStateRuleSet{
 public:
 	/** Constructor */
@@ -42,19 +43,12 @@ public:
 	/** Check whether a given FockState fullfills the rule with respect to
 	 *  a particular FockSpace. */
 	bool isSatisfied(
-		const FockSpace<BitRegister> &fockSpace,
-		const FockState<BitRegister> &fockState
-	) const;
-
-	/** Check whether a given FockState fullfills the rule with respect to
-	 *  a particular FockSpace. */
-	bool isSatisfied(
-		const FockSpace<ExtensiveBitRegister> &fockSpace,
-		const FockState<ExtensiveBitRegister> &fockState
+		const FockSpace &fockSpace,
+		const FockState &fockState
 	) const;
 
 	/** Add FockStateRule. */
-	void addFockStateRule(const FockStateRule::WrapperRule &fockStateRule);
+	void addFockStateRule(const FockStateRule::FockStateRule &fockStateRule);
 
 	/** Get size. */
 	unsigned int getSize() const;
@@ -67,16 +61,7 @@ public:
 	 *  FockStateRules that results from applying the operator to each
 	 *  FockStateRule in the current FockStateRuleSet. */
 	friend FockStateRuleSet operator*(
-		const LadderOperator<BitRegister> &ladderOperator,
-		const FockStateRuleSet &fockStateRuleSet
-	);
-
-	/** Multiplication operator between a LadderOperator and a
-	 *  FockStateRuleSet. Creates a new FockStateRuleSet containing the
-	 *  FockStateRules that results from applying the operator to each
-	 *  FockStateRule in the current FockStateRuleSet. */
-	friend FockStateRuleSet operator*(
-		const LadderOperator<ExtensiveBitRegister> &ladderOperator,
+		const LadderOperator &ladderOperator,
 		const FockStateRuleSet &fockStateRuleSet
 	);
 
@@ -84,11 +69,11 @@ public:
 	void print() const;
 private:
 	/** FockStateRules. */
-	std::vector<FockStateRule::WrapperRule> fockStateRules;
+	std::vector<FockStateRule::FockStateRule> fockStateRules;
 };
 
 inline void FockStateRuleSet::addFockStateRule(
-	const FockStateRule::WrapperRule &fockStateRule
+	const FockStateRule::FockStateRule &fockStateRule
 ){
 	for(unsigned int n = 0; n < fockStateRules.size(); n++)
 		if(fockStateRules.at(n) == fockStateRule)
@@ -101,27 +86,16 @@ inline unsigned int FockStateRuleSet::getSize() const{
 	return fockStateRules.size();
 }
 
-inline FockStateRuleSet operator*(
-	const LadderOperator<BitRegister> &ladderOperator,
-	const FockStateRuleSet &fockStateRuleSet
-){
-	FockStateRuleSet newRuleSet;
-	for(unsigned int n = 0; n < fockStateRuleSet.fockStateRules.size(); n++)
-		newRuleSet.addFockStateRule(ladderOperator*fockStateRuleSet.fockStateRules.at(n));
+// inline FockStateRuleSet operator*(
+// 	const LadderOperator &ladderOperator,
+// 	const FockStateRuleSet &fockStateRuleSet
+// ){
+// 	FockStateRuleSet newRuleSet;
+// 	for(unsigned int n = 0; n < fockStateRuleSet.fockStateRules.size(); n++)
+// 		newRuleSet.addFockStateRule(ladderOperator*fockStateRuleSet.fockStateRules.at(n));
 
-	return newRuleSet;
-}
-
-inline FockStateRuleSet operator*(
-	const LadderOperator<ExtensiveBitRegister> &ladderOperator,
-	const FockStateRuleSet &fockStateRuleSet
-){
-	FockStateRuleSet newRuleSet;
-	for(unsigned int n = 0; n < fockStateRuleSet.fockStateRules.size(); n++)
-		newRuleSet.addFockStateRule(ladderOperator*fockStateRuleSet.fockStateRules.at(n));
-
-	return newRuleSet;
-}
+// 	return newRuleSet;
+// }
 
 inline void FockStateRuleSet::print() const{
 	Streams::out << "FockStateRuleSet{\n";

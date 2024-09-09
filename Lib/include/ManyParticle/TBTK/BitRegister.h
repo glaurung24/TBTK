@@ -39,10 +39,13 @@ namespace TBTK{
  *  \snippet ManyParticle/BitRegister.cpp BitRegister
  *  ## Output
  *  \snippet output/ManyParticle/BitRegister.txt BitRegister */
-class BitRegister : boost::dynamic_bitset<>{
+class BitRegister : public boost::dynamic_bitset<>{
 public:
 	/** Constructor. */
-	BitRegister(unsigned int numBits = 8*sizeof(unsigned int));
+	BitRegister(unsigned long int numBits = 8*sizeof(unsigned int));
+
+	/** Constructor. */
+	BitRegister(unsigned long int numBits, unsigned long int value);
 
 	/** Copy constructor. */
 	BitRegister(const BitRegister &bitRegister);
@@ -89,8 +92,8 @@ public:
 	// /** Decrement operator. */
 	// const BitRegister operator--(int);
 
-	// /** Assignment operator. */
-	// void operator=(const BitRegister &rhs);
+	/** Assignment operator. */
+	void operator=(const BitRegister &rhs);
 
 	// /** Assignment operator. */
 	// void operator=(unsigned int rhs);
@@ -113,24 +116,24 @@ public:
 	// /** Get values as unsigned int. */
 	// unsigned int getValues() const;
 
-	/** Returns a bool that is false if all bits are zero, and true
-	 *  otherwise. */
-	bool toBool() const;
+	// /** Returns a bool that is false if all bits are zero, and true
+	//  *  otherwise. */
+	// bool toBool() const;
 
-	/** Returns an unsigned int containing the least significant bits. */
-	unsigned int toUnsignedInt() const;
+	// /** Returns an unsigned int containing the least significant bits. */
+	// unsigned int toUnsignedInt() const;
 
-	/** Clear register. */
-	void clear();
+	// /** Clear register. */
+	// void clear();
 
-	/** Print bit register. */
-	void print() const;
+	// /** Print bit register. */
+	// void print() const;
 
 	/** Returns the number of bits in the register. */
-	unsigned int getNumBits() const;
+	// unsigned int getNumBits() const;
 
-	/** Returns the number of bits that are one. */
-	unsigned int getNumOneBits() const;
+	// /** Returns the number of bits that are one. */
+	// unsigned int getNumOneBits() const;
 
 	/** Returns the most significant bit. */
 	bool getMostSignificantBit() const;
@@ -138,29 +141,29 @@ public:
 	/** Set the most significant bit. */
 	void setMostSignificantBit();
 
-	/** Clear the most significant bit. */
-	void clearMostSignificantBit();
+	// /** Clear the most significant bit. */
+	// void clearMostSignificantBit();
 
-	/** Create a new BitRegister with the same structure. (Provided to
-	 *  ensure the interface is similar with the interface for
-	 *  ExtensiveBitRegister.) */
-	BitRegister cloneStructure() const;
+	// /** Create a new BitRegister with the same structure. (Provided to
+	//  *  ensure the interface is similar with the interface for
+	//  *  ExtensiveBitRegister.) */
+	// BitRegister cloneStructure() const;
 
-	/** Get string representation of the BitRegister.
-	 *
-	 *  @return A string representation of the BitRegister. */
-	std::string toString() const;
+	// /** Get string representation of the BitRegister.
+	//  *
+	//  *  @return A string representation of the BitRegister. */
+	// std::string toString() const;
 
-	/** Writes the BitRegsiter toString()-representation to a stream.
-	 *
-	 *  @param stream The stream to write to.
-	 *  @param bitRegister The BitRegister to write.
-	 *
-	 *  @return Reference to the output stream just written to. */
-	friend std::ostream& operator<<(
-		std::ostream &stream,
-		const BitRegister &bitRegister
-	);
+	// /** Writes the BitRegsiter toString()-representation to a stream.
+	//  *
+	//  *  @param stream The stream to write to.
+	//  *  @param bitRegister The BitRegister to write.
+	//  *
+	//  *  @return Reference to the output stream just written to. */
+	// friend std::ostream& operator<<(
+	// 	std::ostream &stream,
+	// 	const BitRegister &bitRegister
+	// );
 
 	/** Return the value as an unsigned int. */
 //	unsigned int getAsUnsignedInt() const;
@@ -170,8 +173,7 @@ private:
 	// unsigned numBits;
 
 	/** Mask for the most significant bit. */
-	static constexpr unsigned int MOST_SIGNIFICANT_BIT_MASK
-		= (unsigned int)0x1 << (8*sizeof(unsigned int)-1);
+	boost::dynamic_bitset<> MOST_SIGNIFICANT_BIT_MASK;
 };
 
 // inline const BitRegister BitRegister::operator|(const BitRegister &rhs) const{
@@ -225,15 +227,21 @@ private:
 // }
 
 inline const BitRegister& BitRegister::operator++(){
-	unsigned long int value = this->to_ulong();
-	value++;
-	return BitRegister(value);
+	for(size_type pos = 0; pos < this->size(); ++pos){
+		if((*this)[pos] == true){
+			(*this)[pos] = false;
+		}
+		else{
+			(*this)[pos] = true;
+			break;
+		}
+	}
+	return *this;
 }
 
 inline const BitRegister BitRegister::operator++(int){
-	BitRegister returnValue;
-	returnValue = *this;
-	returnValue++;
+	BitRegister returnValue(*this);
+	++(*this);
 	return returnValue;
 }
 
@@ -249,10 +257,10 @@ inline const BitRegister BitRegister::operator++(int){
 // 	return returnValue;
 // }
 
-// inline void BitRegister::operator=(const BitRegister &rhs){
-// 	if(this != &rhs)
-// 		values = rhs.values;
-// }
+inline void BitRegister::operator=(const BitRegister &rhs){
+	if(this != &rhs)
+		*this = BitRegister(rhs);
+}
 
 // inline void BitRegister::operator=(unsigned int rhs){
 // 	values = rhs;
@@ -306,7 +314,7 @@ inline const BitRegister BitRegister::operator++(int){
 // }
 
 // inline unsigned int BitRegister::getNumBits() const{
-// 	return 8*sizeof(values);
+// 	return numBits;
 // }
 
 // inline unsigned int BitRegister::getNumOneBits() const{
@@ -319,13 +327,13 @@ inline const BitRegister BitRegister::operator++(int){
 // 	return (x & 0x0000003F);
 // }
 
-// inline bool BitRegister::getMostSignificantBit() const{
-// 	return values & MOST_SIGNIFICANT_BIT_MASK;
-// }
+inline bool BitRegister::getMostSignificantBit() const{
+	return this->test(size()-1);
+}
 
-// inline void BitRegister::setMostSignificantBit(){
-// 	values |= MOST_SIGNIFICANT_BIT_MASK;
-// }
+inline void BitRegister::setMostSignificantBit(){
+	*this |= MOST_SIGNIFICANT_BIT_MASK;
+}
 
 // inline void BitRegister::clearMostSignificantBit(){
 // 	values &= !MOST_SIGNIFICANT_BIT_MASK;

@@ -25,8 +25,6 @@
 #define COM_DAFER45_TBTK_DEFAULT_MAP
 
 #include "TBTK/FockStateMap/FockStateMap.h"
-#include "TBTK/BitRegister.h"
-#include "TBTK/ExtensiveBitRegister.h"
 
 namespace TBTK{
 namespace FockStateMap{
@@ -50,7 +48,7 @@ public:
 private:
 };
 
-template<typename BIT_REGISTER>
+
 DefaultMap::DefaultMap(
 	unsigned int exponentialDimension
 ) :
@@ -58,12 +56,12 @@ DefaultMap::DefaultMap(
 {
 }
 
-template<typename BIT_REGISTER>
+
 DefaultMap::~DefaultMap(){
 }
 
-template<typename BIT_REGISTER>
-unsigned int DefaultMap::getBasisSize() const{
+
+inline unsigned int DefaultMap::getBasisSize() const{
 	return (1 << FockStateMap::getExponentialDimension());
 }
 
