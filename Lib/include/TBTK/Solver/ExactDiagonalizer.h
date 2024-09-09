@@ -25,8 +25,9 @@
 #define COM_DAFER45_TBTK_SOLVER_EXACT_DIAGONALIZATION
 
 #include "TBTK/Solver/Diagonalizer.h"
-// #include "TBTK/FockStateRuleSet.h"
+#include "TBTK/FockStateRuleSet.h"
 // #include "TBTK/FockStateRule/WrapperRule.h"
+#include "TBTK/FockStateRule/FockStateRule.h"
 #include "TBTK/InteractionAmplitudeSet.h"
 #include "TBTK/Model.h"
 #include "TBTK/ManyParticleContext.h"
@@ -93,27 +94,25 @@ private:
 
 		// /** Constructor. */
 		// SubspaceContext(
-		// 	std::vector<FockStateRule::WrapperRule> rules
+		// 	std::vector<FockStateRule::FockStateRule> rules
 		// );
 
-		// /** Constructor. */
-		// SubspaceContext(
-		// 	const FockStateRuleSet &rules
-		// );
+		/** Constructor. */
+		SubspaceContext(
+			const FockStateRuleSet &rules
+		);
 
 		/** Destructor. */
 		~SubspaceContext();
 
 // 		/** Subspace rules. */
 // //		std::vector<FockStateRule::WrapperRule> rules;
-// 		FockStateRuleSet fockStateRuleSet;
+		FockStateRuleSet fockStateRuleSet;
 
 		/** Pointer to many-body model. */
-//		Model *manyParticleModel;
 		std::shared_ptr<Model> manyParticleModel;
 
 		/** Pointer to diagonalization solver. */
-//		Diagonalizer *dSolver;
 		std::shared_ptr<Diagonalizer> dSolver;
 	private:
 	};

@@ -6,7 +6,7 @@
 namespace TBTK{
 namespace FockStateMap{
 
-class ImplementedFockStateMap : public FockStateMap<BitRegister>{
+class ImplementedFockStateMap : public FockStateMap{
 public:
 	ImplementedFockStateMap(
 		unsigned int exponentialDimension
@@ -19,14 +19,14 @@ public:
 
 	//Dummy implementation to make the class non-abstract.
 	virtual unsigned int getBasisIndex(
-		const FockState<BitRegister> &fockState
+		const FockState &fockState
 	) const{
 		return 0;
 	}
 
 	//Dummy implementation to make the class non-abstract.
-	virtual FockState<BitRegister> getFockState(unsigned int index) const{
-		return FockState<BitRegister>(1);
+	virtual FockState getFockState(unsigned int index) const{
+		return FockState(1);
 	}
 };
 

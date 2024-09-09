@@ -9,10 +9,10 @@ namespace TBTK{
 class LadderOperatorTest : public ::testing::Test{
 protected:
 	Model model;
-	LadderOperator<BitRegister> fermionicCreation[2];
-	LadderOperator<BitRegister> fermionicAnnihilation[2];
-	LadderOperator<BitRegister> bosonicCreation[2];
-	LadderOperator<BitRegister> bosonicAnnihilation[2];
+	LadderOperator fermionicCreation[2];
+	LadderOperator fermionicAnnihilation[2];
+	LadderOperator bosonicCreation[2];
+	LadderOperator bosonicAnnihilation[2];
 	const unsigned int NUM_STATES = 5;
 
 	void SetUp() override{
@@ -20,14 +20,14 @@ protected:
 			model << HoppingAmplitude(1, {n}, {n});
 		model.construct();
 
-		FockState<BitRegister> templateState(NUM_STATES);
+		FockState templateState(NUM_STATES);
 		BitRegister fermionMask;
-		for(unsigned int n = 0; n < fermionMask.getNumBits(); n++)
-			fermionMask.setBit(n, true);
+		for(unsigned int n = 0; n < fermionMask.size(); n++)
+			fermionMask.set(n, true);
 
 		for(unsigned int n = 0; n < 2; n++){
-			fermionicCreation[n] = LadderOperator<BitRegister>(
-				LadderOperator<BitRegister>::Type::Creation,
+			fermionicCreation[n] = LadderOperator(
+				LadderOperator::Type::Creation,
 				Statistics::FermiDirac,
 				&model.getHoppingAmplitudeSet(),
 				2+n,	//State with Hilbert space index 3.
@@ -36,8 +36,8 @@ protected:
 				templateState,
 				fermionMask
 			);
-			fermionicAnnihilation[n] = LadderOperator<BitRegister>(
-				LadderOperator<BitRegister>::Type::Annihilation,
+			fermionicAnnihilation[n] = LadderOperator(
+				LadderOperator::Type::Annihilation,
 				Statistics::FermiDirac,
 				&model.getHoppingAmplitudeSet(),
 				2+n,	//State with Hilbert space index 3.
@@ -46,8 +46,8 @@ protected:
 				templateState,
 				fermionMask
 			);
-			bosonicCreation[n] = LadderOperator<BitRegister>(
-				LadderOperator<BitRegister>::Type::Creation,
+			bosonicCreation[n] = LadderOperator(
+				LadderOperator::Type::Creation,
 				Statistics::BoseEinstein,
 				&model.getHoppingAmplitudeSet(),
 				2+n,	//State with Hilbert space index 3.
@@ -56,8 +56,8 @@ protected:
 				templateState,
 				fermionMask
 			);
-			bosonicAnnihilation[n] = LadderOperator<BitRegister>(
-				LadderOperator<BitRegister>::Type::Annihilation,
+			bosonicAnnihilation[n] = LadderOperator(
+				LadderOperator::Type::Annihilation,
 				Statistics::BoseEinstein,
 				&model.getHoppingAmplitudeSet(),
 				2+n,	//State with Hilbert space index 3.
@@ -74,7 +74,7 @@ protected:
 TEST_F(LadderOperatorTest, getType1){
 	EXPECT_EQ(
 		fermionicCreation[0].getType(),
-		LadderOperator<BitRegister>::Type::Creation
+		LadderOperator::Type::Creation
 	);
 }
 
@@ -82,7 +82,7 @@ TEST_F(LadderOperatorTest, getType1){
 TEST_F(LadderOperatorTest, getType2){
 	EXPECT_EQ(
 		fermionicAnnihilation[0].getType(),
-		LadderOperator<BitRegister>::Type::Annihilation
+		LadderOperator::Type::Annihilation
 	);
 }
 
@@ -90,7 +90,7 @@ TEST_F(LadderOperatorTest, getType2){
 TEST_F(LadderOperatorTest, getType3){
 	EXPECT_EQ(
 		bosonicCreation[0].getType(),
-		LadderOperator<BitRegister>::Type::Creation
+		LadderOperator::Type::Creation
 	);
 }
 
@@ -98,7 +98,7 @@ TEST_F(LadderOperatorTest, getType3){
 TEST_F(LadderOperatorTest, getType4){
 	EXPECT_EQ(
 		bosonicAnnihilation[0].getType(),
-		LadderOperator<BitRegister>::Type::Annihilation
+		LadderOperator::Type::Annihilation
 	);
 }
 
@@ -114,7 +114,7 @@ TEST_F(LadderOperatorTest, getState1){
 
 //TBTKFeature ManyParticle.LadderOperator.getNumParticles.1 2019-11-03
 TEST_F(LadderOperatorTest, getNumParticles1){
-	FockState<BitRegister> fockState(NUM_STATES);
+	FockState fockState(NUM_STATES);
 	EXPECT_EQ(fermionicCreation[0].getNumParticles(fockState), 0);
 
 	fockState.getBitRegister() = 0x00000004;
@@ -123,7 +123,7 @@ TEST_F(LadderOperatorTest, getNumParticles1){
 
 //TBTKFeature ManyParticle.LadderOperator.getNumParticles.2 2019-11-03
 TEST_F(LadderOperatorTest, getNumParticles2){
-	FockState<BitRegister> fockState(NUM_STATES);
+	FockState fockState(NUM_STATES);
 	EXPECT_EQ(bosonicCreation[0].getNumParticles(fockState), 0);
 
 	fockState.getBitRegister() = 0x00000010;
@@ -138,7 +138,7 @@ TEST_F(LadderOperatorTest, getNumParticles2){
 
 //TBTKFeature ManyParticle.LadderOperator.operatorMultiplication.1 2019-11-03
 TEST_F(LadderOperatorTest, operatorMultiplication1){
-	FockState<BitRegister> fockState(NUM_STATES);
+	FockState fockState(NUM_STATES);
 
 	fermionicCreation[0]*fockState;
 	EXPECT_EQ(fermionicCreation[0].getNumParticles(fockState), 1);
@@ -150,7 +150,7 @@ TEST_F(LadderOperatorTest, operatorMultiplication1){
 
 //TBTKFeature ManyParticle.LadderOperator.operatorMultiplication.2 2019-11-03
 TEST_F(LadderOperatorTest, operatorMultiplication2){
-	FockState<BitRegister> fockState(NUM_STATES);
+	FockState fockState(NUM_STATES);
 
 	fermionicCreation[0]*fockState;
 	fermionicAnnihilation[0]*fockState;
@@ -163,7 +163,7 @@ TEST_F(LadderOperatorTest, operatorMultiplication2){
 
 //TBTKFeature ManyParticle.LadderOperator.operatorMultiplication.3 2019-11-03
 TEST_F(LadderOperatorTest, operatorMultiplication3){
-	FockState<BitRegister> fockState(NUM_STATES);
+	FockState fockState(NUM_STATES);
 
 	fermionicCreation[0]*fockState;
 	fermionicCreation[1]*fockState;
@@ -172,7 +172,7 @@ TEST_F(LadderOperatorTest, operatorMultiplication3){
 
 //TBTKFeature ManyParticle.LadderOperator.operatorMultiplication.4 2019-11-03
 TEST_F(LadderOperatorTest, operatorMultiplication4){
-	FockState<BitRegister> fockState(NUM_STATES);
+	FockState fockState(NUM_STATES);
 
 	fermionicCreation[1]*fockState;
 	fermionicCreation[0]*fockState;
@@ -181,7 +181,7 @@ TEST_F(LadderOperatorTest, operatorMultiplication4){
 
 //TBTKFeature ManyParticle.LadderOperator.operatorMultiplication.5 2019-11-03
 TEST_F(LadderOperatorTest, operatorMultiplication5){
-	FockState<BitRegister> fockState(NUM_STATES);
+	FockState fockState(NUM_STATES);
 
 	fermionicCreation[0]*fockState;
 	fermionicCreation[1]*fockState;
@@ -192,7 +192,7 @@ TEST_F(LadderOperatorTest, operatorMultiplication5){
 
 //TBTKFeature ManyParticle.LadderOperator.operatorMultiplication.6 2019-11-03
 TEST_F(LadderOperatorTest, operatorMultiplication6){
-	FockState<BitRegister> fockState(NUM_STATES);
+	FockState fockState(NUM_STATES);
 
 	fermionicCreation[0]*fockState;
 	fermionicCreation[1]*fockState;
@@ -203,7 +203,7 @@ TEST_F(LadderOperatorTest, operatorMultiplication6){
 
 //TBTKFeature ManyParticle.LadderOperator.operatorMultiplication.7 2019-11-03
 TEST_F(LadderOperatorTest, operatorMultiplication7){
-	FockState<BitRegister> fockState(NUM_STATES);
+	FockState fockState(NUM_STATES);
 
 	int factorial = 1;
 	for(unsigned int n = 0; n < 4; n++){
@@ -216,7 +216,7 @@ TEST_F(LadderOperatorTest, operatorMultiplication7){
 
 //TBTKFeature ManyParticle.LadderOperator.operatorMultiplication.7 2019-11-03
 TEST_F(LadderOperatorTest, operatorMultiplication8){
-	FockState<BitRegister> fockState(NUM_STATES);
+	FockState fockState(NUM_STATES);
 
 	for(unsigned int n = 0; n < 3; n++)
 		bosonicCreation[0]*fockState;

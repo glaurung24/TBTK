@@ -8,10 +8,10 @@ namespace FockStateMap{
 
 class LookupTableMapTest : public ::testing::Test{
 protected:
-	LookupTableMap<BitRegister> lookupTableMap;
-	FockState<BitRegister> fockState0;
-	FockState<BitRegister> fockState1;
-	FockState<BitRegister> fockState2;
+	LookupTableMap lookupTableMap;
+	FockState fockState0;
+	FockState fockState1;
+	FockState fockState2;
 	const unsigned int EXPONENTIAL_DIMENSION = 10;
 
 	LookupTableMapTest() :
@@ -23,9 +23,9 @@ protected:
 	}
 
 	void SetUp() override{
-		fockState0.getBitRegister().setBit(2, 1);
-		fockState1.getBitRegister().setBit(7, 1);
-		fockState2.getBitRegister().setBit(5, 1);
+		fockState0.getBitRegister().set(2, 1);
+		fockState1.getBitRegister().set(7, 1);
+		fockState2.getBitRegister().set(5, 1);
 		lookupTableMap.addState(fockState0);
 		lookupTableMap.addState(fockState1);
 		lookupTableMap.addState(fockState2);
@@ -34,7 +34,7 @@ protected:
 
 //TBTKFeature FockStateMap.LookupTable.construction.1 2019-11-04
 TEST(LookupTableMap, construction1){
-	LookupTableMap<BitRegister> lookupTableMap(10);
+	LookupTableMap lookupTableMap(10);
 	EXPECT_EQ(lookupTableMap.getBasisSize(), 0);
 }
 
@@ -53,13 +53,13 @@ TEST_F(LookupTableMapTest, getBasisIndex){
 //TBTKFeature FockStateMap.LookupTable.addState.1 2019-11-04
 TEST(LookupTableMap, addState1){
 	const unsigned int EXPONENTIAL_DIMENSION = 10;
-	LookupTableMap<BitRegister> lookupTableMap(EXPONENTIAL_DIMENSION);
-	FockState<BitRegister> fockState0(EXPONENTIAL_DIMENSION);
-	FockState<BitRegister> fockState1(EXPONENTIAL_DIMENSION);
-	FockState<BitRegister> fockState2(EXPONENTIAL_DIMENSION);
-	fockState0.getBitRegister().setBit(2, 1);
-	fockState1.getBitRegister().setBit(7, 1);
-	fockState2.getBitRegister().setBit(5, 1);
+	LookupTableMap lookupTableMap(EXPONENTIAL_DIMENSION);
+	FockState fockState0(EXPONENTIAL_DIMENSION);
+	FockState fockState1(EXPONENTIAL_DIMENSION);
+	FockState fockState2(EXPONENTIAL_DIMENSION);
+	fockState0.getBitRegister().set(2, 1);
+	fockState1.getBitRegister().set(7, 1);
+	fockState2.getBitRegister().set(5, 1);
 	lookupTableMap.addState(fockState0);
 	lookupTableMap.addState(fockState1);
 	lookupTableMap.addState(fockState2);

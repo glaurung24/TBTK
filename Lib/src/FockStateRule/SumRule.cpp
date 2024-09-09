@@ -63,26 +63,26 @@ SumRule* SumRule::clone() const{
 	return new SumRule(stateIndices, numParticles);
 }
 
-WrapperRule SumRule::createNewRule(
-	const LadderOperator &ladderOperator
-) const{
-	Index stateIndex = ladderOperator.getPhysicalIndex();
-	LadderOperator::Type type = ladderOperator.getType();
+// WrapperRule SumRule::createNewRule(
+// 	const LadderOperator &ladderOperator
+// ) const{
+// 	Index stateIndex = ladderOperator.getPhysicalIndex();
+// 	LadderOperator::Type type = ladderOperator.getType();
 
-	int numParticles = this->numParticles;
+// 	int numParticles = this->numParticles;
 
-	int sign = 0;
-	if(type == LadderOperator::Type::Creation)
-		sign = 1;
-	else
-		sign = -1;
+// 	int sign = 0;
+// 	if(type == LadderOperator::Type::Creation)
+// 		sign = 1;
+// 	else
+// 		sign = -1;
 
-	for(unsigned int n = 0; n < stateIndices.size(); n++)
-		if(stateIndices.at(n).equals(stateIndex, true))
-			numParticles += sign;
+// 	for(unsigned int n = 0; n < stateIndices.size(); n++)
+// 		if(stateIndices.at(n).equals(stateIndex, true))
+// 			numParticles += sign;
 
-	return WrapperRule(SumRule(stateIndices, numParticles));
-}
+// 	return WrapperRule(SumRule(stateIndices, numParticles));
+// }
 
 
 bool SumRule::isSatisfied(

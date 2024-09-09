@@ -60,8 +60,8 @@ public:
 	 *  wrapper. */
 	FockSpace* getFockSpaceBitRegister();
 
-	// /** Add rule that restricts the Fock space. */
-	// void addFockStateRule(const FockStateRule::WrapperRule rule);
+	/** Add rule that restricts the Fock space. */
+	void addFockStateRule(const std::shared_ptr<FockStateRule::FockStateRule> rule);
 
 	/** Add InteractionAmplitude. */
 	void addIA(InteractionAmplitude ia);
@@ -69,15 +69,14 @@ public:
 	/** Get InteractionAmplitudeSet. */
 	const InteractionAmplitudeSet* getInteractionAmplitudeSet() const;
 
-	// /** Get FockStateRules. */
-	// const FockStateRuleSet& getFockStateRuleSet() const;
+	/** Get FockStateRules. */
+	const FockStateRuleSet& getFockStateRuleSet() const;
 private:
 	/** Pointer to FockSpace using BitRegsiter. */
 	std::shared_ptr<FockSpace> fockSpace;
 
-// 	/** Rules specifying the relevant subspace. */
-// //	std::vector<FockStateRule::WrapperRule> fockStateRules;
-// 	FockStateRuleSet fockStateRuleSet;
+	/** Rules specifying the relevant subspace. */
+	FockStateRuleSet fockStateRuleSet;
 
 	/** Interaction amplitude set. */
 	std::shared_ptr<InteractionAmplitudeSet> interactionAmplitudeSet;
@@ -89,9 +88,9 @@ inline FockSpace* ManyParticleContext::getFockSpaceBitRegister(){
 }
 
 
-// inline void ManyParticleContext::addFockStateRule(const FockStateRule::WrapperRule rule){
-// 	fockStateRuleSet.addFockStateRule(rule);
-// }
+inline void ManyParticleContext::addFockStateRule(const std::shared_ptr<FockStateRule::FockStateRule> rule){
+	fockStateRuleSet.addFockStateRule(rule);
+}
 
 inline void ManyParticleContext::addIA(InteractionAmplitude ia){
 	interactionAmplitudeSet.get()->addIA(ia);
@@ -101,9 +100,9 @@ inline const InteractionAmplitudeSet* ManyParticleContext::getInteractionAmplitu
 	return interactionAmplitudeSet.get();
 }
 
-// inline const FockStateRuleSet& ManyParticleContext::getFockStateRuleSet() const{
-// 	return fockStateRuleSet;
-// }
+inline const FockStateRuleSet& ManyParticleContext::getFockStateRuleSet() const{
+	return fockStateRuleSet;
+}
 
 };	//End of namespace TBTK
 

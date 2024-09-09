@@ -49,30 +49,30 @@ public:
 	);
 
 	/** Destructor. */
-	virtual ~SumRule();
+	~SumRule();
 
 	/** Clone SumRule. */
-	virtual SumRule* clone() const;
+	SumRule* clone() const;
 
-	/** Implements FockStateRule::createNewRule(). */
-	virtual WrapperRule createNewRule(
-		const LadderOperator &ladderOperator
-	) const;
+	// /** Implements FockStateRule::createNewRule(). */
+	// virtual WrapperRule createNewRule(
+	// 	const LadderOperator &ladderOperator
+	// ) const;
 
 
 	/** Check whether a given FockState fullfills the rule with respect to
 	 *  a particular FockSpace. */
-	virtual bool isSatisfied(
+	bool isSatisfied(
 		const FockSpace &fockSpace,
 		const FockState &fockState
 	) const;
 
 
 	/** Comparison operator. */
-	virtual bool operator==(const FockStateRule &rhs) const;
+	bool operator==(const FockStateRule &rhs) const;
 
 	/** Implements FockStateRule::print(). */
-	virtual void print() const;
+	void print() const;
 private:
 	/** Indices to sum over. */
 	std::vector<Index> stateIndices;

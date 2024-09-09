@@ -196,11 +196,11 @@ FockStateMap::FockStateMap* FockSpace::createFockStateMap(int numParticles) cons
 	}
 }
 
-// FockStateMap::FockStateMap* FockSpace::createFockStateMap(const FockStateRule::FockStateRule &rule) const{
-// 	FockStateRuleSet fockStateRuleSet;
-// 	fockStateRuleSet.addFockStateRule(rule);
-// 	return createFockStateMap(fockStateRuleSet);
-// }
+FockStateMap::FockStateMap* FockSpace::createFockStateMap(const std::shared_ptr<FockStateRule::FockStateRule> rule) const{
+	FockStateRuleSet fockStateRuleSet;
+	fockStateRuleSet.addFockStateRule(rule);
+	return createFockStateMap(fockStateRuleSet);
+}
 
 // FockStateMap::FockStateMap* FockSpace::createFockStateMap(
 // 	std::initializer_list<const FockStateRule::WrapperRule> rules
@@ -220,44 +220,44 @@ FockStateMap::FockStateMap* FockSpace::createFockStateMap(int numParticles) cons
 // 	return createFockStateMap(fockStateRuleSet);
 // }
 
-// FockStateMap::FockStateMap* FockSpace::createFockStateMap(
-// 	const FockStateRuleSet &rules
-// ) const{
-// 	FockStateMap::LookupTableMap *fockStateMap = new FockStateMap::LookupTableMap(
-// 		exponentialDimension
-// 	);
+FockStateMap::FockStateMap* FockSpace::createFockStateMap(
+	const FockStateRuleSet &rules
+) const{
+	FockStateMap::LookupTableMap *fockStateMap = new FockStateMap::LookupTableMap(
+		exponentialDimension
+	);
 
-// 	if(rules.getSize() == 0){
-// 		// FockStateMap::DefaultMap *fockStateMap = new FockStateMap::DefaultMap( //TODO
-// 		// 	exponentialDimension
-// 		// );
+	if(rules.getSize() == 0){
+		// FockStateMap::DefaultMap *fockStateMap = new FockStateMap::DefaultMap( //TODO
+		// 	exponentialDimension
+		// );
 
-// 		// return fockStateMap;
-// 	}
-// 	else{
-// 		if(exponentialDimension > 31){
-// 			//See comment bellow
-// 			TBTKExit(
-// 				"FockSpace::createFockStateMap()",
-// 				"FockSpaces with more than 31 states not yet supported using lookup table.",
-// 				""
-// 			);
-// 		}
+		// return fockStateMap;
+	}
+	else{
+		if(exponentialDimension > 31){
+			//See comment bellow
+			TBTKExit(
+				"FockSpace::createFockStateMap()",
+				"FockSpaces with more than 31 states not yet supported using lookup table.",
+				""
+			);
+		}
 
-// 		//This loop is very slow for large exponential dimension and a
-// 		//better method should be implemented that can take advantage
-// 		//of the FockStateRules more directly.
-// 		FockState fockState = getVacuumState();
-// 		for(unsigned int n = 0; n < (unsigned int)(1 << exponentialDimension); n++){
-// 			if(rules.isSatisfied(*this, fockState))
-// 				fockStateMap->addState(fockState);
+		//This loop is very slow for large exponential dimension and a
+		//better method should be implemented that can take advantage
+		//of the FockStateRules more directly.
+		FockState fockState = getVacuumState();
+		for(unsigned int n = 0; n < (unsigned int)(1 << exponentialDimension); n++){
+			if(rules.isSatisfied(*this, fockState))
+				fockStateMap->addState(fockState);
 
-// 			fockState.getBitRegister()++;
-// 		}
-// 	}
+			fockState.getBitRegister()++;
+		}
+	}
 
-// 	return fockStateMap;
-// }
+	return fockStateMap;
+}
 
 const HoppingAmplitudeSet* FockSpace::getHoppingAmplitudeSet() const{
 	return hoppingAmplitudeSet;

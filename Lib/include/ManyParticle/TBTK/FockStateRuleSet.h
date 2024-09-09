@@ -19,19 +19,19 @@
  *  @brief FockStateRuleSet.
  *
  *  @author Kristofer Björnson
+ *  @author Andreas Theiler
  */
 
 #ifndef COM_DAFER45_TBTK_FOCK_STATE_RULE_SET
 #define COM_DAFER45_TBTK_FOCK_STATE_RULE_SET
 
 #include "TBTK/FockStateRule/FockStateRule.h"
-// #include "TBTK/FockStateRule/WrapperRule.h"
 #include "TBTK/FockSpace.h"
 
 #include <vector>
+#include <memory>
 
 namespace TBTK{
-class FockSpace;
 class FockStateRuleSet{
 public:
 	/** Constructor */
@@ -48,7 +48,7 @@ public:
 	) const;
 
 	/** Add FockStateRule. */
-	void addFockStateRule(const FockStateRule::FockStateRule &fockStateRule);
+	void addFockStateRule(const std::shared_ptr<FockStateRule::FockStateRule> fockStateRule);
 
 	/** Get size. */
 	unsigned int getSize() const;
@@ -60,25 +60,24 @@ public:
 	 *  FockStateRuleSet. Creates a new FockStateRuleSet containing the
 	 *  FockStateRules that results from applying the operator to each
 	 *  FockStateRule in the current FockStateRuleSet. */
-	friend FockStateRuleSet operator*(
-		const LadderOperator &ladderOperator,
-		const FockStateRuleSet &fockStateRuleSet
-	);
+	// friend FockStateRuleSet operator*(
+	// 	const LadderOperator &ladderOperator,
+	// 	const FockStateRuleSet &fockStateRuleSet
+	// );
 
 	/** Print FockStateRuleSet. */
 	void print() const;
 private:
 	/** FockStateRules. */
-	std::vector<FockStateRule::FockStateRule> fockStateRules;
+	std::vector<std::shared_ptr<FockStateRule::FockStateRule>> fockStateRules;
 };
 
 inline void FockStateRuleSet::addFockStateRule(
-	const FockStateRule::FockStateRule &fockStateRule
+	const std::shared_ptr<FockStateRule::FockStateRule> fockStateRule
 ){
-	for(unsigned int n = 0; n < fockStateRules.size(); n++)
-		if(fockStateRules.at(n) == fockStateRule)
+	for(unsigned int n = 0; n < fockStateRules.size(); ++n)
+		if(*(fockStateRules.at(n).get()) == *(fockStateRule.get()))
 			return;
-
 	fockStateRules.push_back(fockStateRule);
 }
 
@@ -103,7 +102,7 @@ inline void FockStateRuleSet::print() const{
 		if(n > 0)
 			Streams::out << ",\n";
 		Streams::out << "\t";
-		fockStateRules.at(n).print();
+		fockStateRules.at(n)->print();
 	}
 	Streams::out << "\n}\n";
 }

@@ -4,6 +4,7 @@
 // #include "TBTK/FockStateRule/DifferenceRule.h"
 // #include "TBTK/FockStateRule/SumRule.h"
 // #include "TBTK/FockStateRule/WrapperRule.h"
+#include "TBTK/FockStateRuleSet.h"
 #include "TBTK/Solver/Diagonalizer.h"
 #include "TBTK/Property/DOS.h"
 #include "TBTK/PropertyExtractor/Diagonalizer.h"
@@ -57,156 +58,76 @@ void ExactDiagonalizer::run(unsigned int subspace){
 	}
 }
 
-// void ExactDiagonalizer::setupManyParticleModel(unsigned int subspace){
-// 	FockSpace *fockSpace = getModel().getManyParticleContext()->getFockSpaceBitRegister();
-// 	LadderOperator const* const* operators = fockSpace->getOperators();
-// 	SubspaceContext &subspaceContext = subspaceContexts.at(subspace);
-// 	FockStateMap::FockStateMap *fockStateMap = fockSpace->createFockStateMap(
-// 		subspaceContext.fockStateRuleSet
-// 	);
-
-// 	subspaceContext.manyParticleModel.reset(new Model());
-// 	for(unsigned int n = 0; n < fockStateMap->getBasisSize(); n++){
-// 		for(
-// 			HoppingAmplitudeSet::ConstIterator iterator
-// 				= getModel().getHoppingAmplitudeSet().cbegin();
-// 			iterator != getModel().getHoppingAmplitudeSet().cend();
-// 			++iterator
-// 		){
-// 			FockState fockState = fockStateMap->getFockState(n);
-
-// 			int from = fockStateMap->getBasisIndex(fockState);
-
-// 			operators[getModel().getBasisIndex((*iterator).getFromIndex())][1]*fockState;
-// 			if(fockState.isNull())
-// 				continue;
-// 			operators[getModel().getBasisIndex((*iterator).getToIndex())][0]*fockState;
-// 			if(fockState.isNull())
-// 				continue;
-
-// 			int to = fockStateMap->getBasisIndex(fockState);
-
-// 			*subspaceContext.manyParticleModel << HoppingAmplitude(
-// 				(*iterator).getAmplitude()*(double)fockState.getPrefactor(),
-// 				{to},
-// 				{from}
-// 			);
-// 		}
-
-// 		for(unsigned int c = 0; c < getModel().getManyParticleContext()->getInteractionAmplitudeSet()->getNumInteractionAmplitudes(); c++){
-// 			FockState fockState = fockStateMap->getFockState(n);
-
-// 			int from = fockStateMap->getBasisIndex(fockState);
-
-// 			InteractionAmplitude ia = getModel().getManyParticleContext()->getInteractionAmplitudeSet()->getInteractionAmplitude(c);
-// 			for(int k =  ia.getNumAnnihilationOperators() - 1; k >= 0; k--){
-// 				operators[getModel().getBasisIndex(ia.getAnnihilationOperatorIndex(k))][1]*fockState;
-// 				if(fockState.isNull())
-// 					break;
-// 			}
-// 			if(fockState.isNull())
-// 				continue;
-
-// 			for(int k =  ia.getNumCreationOperators() - 1; k >= 0; k--){
-// 				operators[getModel().getBasisIndex(ia.getCreationOperatorIndex(k))][0]*fockState;
-// 				if(fockState.isNull())
-// 					break;
-// 			}
-// 			if(fockState.isNull())
-// 				continue;
-
-// 			int to = fockStateMap->getBasisIndex(fockState);
-
-// 			*subspaceContext.manyParticleModel <<HoppingAmplitude(
-// 				ia.getAmplitude()*(double)fockState.getPrefactor(),
-// 				{to},
-// 				{from}
-// 			);
-// 		}
-// 	}
-// 	subspaceContext.manyParticleModel->construct();
-
-// 	delete fockStateMap;
-// }
-
-// template<>
-// void ExactDiagonalizer::setupManyParticleModel<ExtensiveBitRegister>(unsigned int subspace){
-// 	FockSpace<ExtensiveBitRegister> *fockSpace = getModel().getManyParticleContext()->getFockSpaceExtensiveBitRegister();
-// 	LadderOperator<ExtensiveBitRegister> const* const* operators = fockSpace->getOperators();
-// 	SubspaceContext &subspaceContext = subspaceContexts.at(subspace);
-// 	FockStateMap::FockStateMap<ExtensiveBitRegister> *fockStateMap = fockSpace->createFockStateMap(
-// 		subspaceContext.fockStateRuleSet
-// 	);
-
-// 	subspaceContext.manyParticleModel.reset(new Model());
-// 	for(unsigned int n = 0; n < fockStateMap->getBasisSize(); n++){
-// 		for(
-// 			HoppingAmplitudeSet::ConstIterator iterator
-// 				= getModel().getHoppingAmplitudeSet().cbegin();
-// 			iterator != getModel().getHoppingAmplitudeSet().cend();
-// 			++iterator
-// 		){
-// 			FockState<ExtensiveBitRegister> fockState = fockStateMap->getFockState(n);
-
-// 			int from = fockStateMap->getBasisIndex(fockState);
-
-// 			operators[getModel().getBasisIndex((*iterator).getFromIndex())][1]*fockState;
-// 			if(fockState.isNull())
-// 				continue;
-// 			operators[getModel().getBasisIndex((*iterator).getToIndex())][0]*fockState;
-// 			if(fockState.isNull())
-// 				continue;
-
-// 			int to = fockStateMap->getBasisIndex(fockState);
-
-// 			*subspaceContext.manyParticleModel << HoppingAmplitude(
-// 				(*iterator).getAmplitude()*(double)fockState.getPrefactor(),
-// 				{to},
-// 				{from}
-// 			);
-// 		}
-
-// 		for(unsigned int c = 0; c < getModel().getManyParticleContext()->getInteractionAmplitudeSet()->getNumInteractionAmplitudes(); c++){
-// 			FockState<ExtensiveBitRegister> fockState = fockStateMap->getFockState(n);
-
-// 			int from = fockStateMap->getBasisIndex(fockState);
-
-// 			InteractionAmplitude ia = getModel().getManyParticleContext()->getInteractionAmplitudeSet()->getInteractionAmplitude(c);
-// 			for(int k =  ia.getNumAnnihilationOperators() - 1; k >= 0; k--){
-// 				operators[getModel().getBasisIndex(ia.getAnnihilationOperatorIndex(k))][1]*fockState;
-// 				if(fockState.isNull())
-// 					break;
-// 			}
-// 			if(fockState.isNull())
-// 				continue;
-
-// 			for(int k =  ia.getNumCreationOperators() - 1; k >= 0; k--){
-// 				operators[getModel().getBasisIndex(ia.getCreationOperatorIndex(k))][0]*fockState;
-// 				if(fockState.isNull())
-// 					break;
-// 			}
-// 			if(fockState.isNull())
-// 				continue;
-
-// 			int to = fockStateMap->getBasisIndex(fockState);
-
-// 			*subspaceContext.manyParticleModel << HoppingAmplitude(
-// 				ia.getAmplitude()*(double)fockState.getPrefactor(),
-// 				{to},
-// 				{from}
-// 			);
-// 		}
-// 	}
-// 	subspaceContext.manyParticleModel->construct();
-
-// 	delete fockStateMap;
-// }
-
 void ExactDiagonalizer::setupManyParticleModel(unsigned int subspace){
-	// if(getModel().getManyParticleContext()->wrapsBitRegister())
-		setupManyParticleModel(subspace);
-	// else
-	// 	setupManyParticleModel(subspace);
+	FockSpace *fockSpace = getModel().getManyParticleContext()->getFockSpaceBitRegister();
+	LadderOperator const* const* operators = fockSpace->getOperators();
+	SubspaceContext &subspaceContext = subspaceContexts.at(subspace);
+	FockStateMap::FockStateMap *fockStateMap = fockSpace->createFockStateMap(
+		subspaceContext.fockStateRuleSet
+	);
+
+	subspaceContext.manyParticleModel.reset(new Model());
+	for(unsigned int n = 0; n < fockStateMap->getBasisSize(); n++){
+		for(
+			HoppingAmplitudeSet::ConstIterator iterator
+				= getModel().getHoppingAmplitudeSet().cbegin();
+			iterator != getModel().getHoppingAmplitudeSet().cend();
+			++iterator
+		){
+			FockState fockState = fockStateMap->getFockState(n);
+
+			int from = fockStateMap->getBasisIndex(fockState);
+
+			operators[getModel().getBasisIndex((*iterator).getFromIndex())][1]*fockState;
+			if(fockState.isNull())
+				continue;
+			operators[getModel().getBasisIndex((*iterator).getToIndex())][0]*fockState;
+			if(fockState.isNull())
+				continue;
+
+			int to = fockStateMap->getBasisIndex(fockState);
+
+			*subspaceContext.manyParticleModel << HoppingAmplitude(
+				(*iterator).getAmplitude()*(double)fockState.getPrefactor(),
+				{to},
+				{from}
+			);
+		}
+
+		for(unsigned int c = 0; c < getModel().getManyParticleContext()->getInteractionAmplitudeSet()->getNumInteractionAmplitudes(); c++){
+			FockState fockState = fockStateMap->getFockState(n);
+
+			int from = fockStateMap->getBasisIndex(fockState);
+
+			InteractionAmplitude ia = getModel().getManyParticleContext()->getInteractionAmplitudeSet()->getInteractionAmplitude(c);
+			for(int k =  ia.getNumAnnihilationOperators() - 1; k >= 0; k--){
+				operators[getModel().getBasisIndex(ia.getAnnihilationOperatorIndex(k))][1]*fockState;
+				if(fockState.isNull())
+					break;
+			}
+			if(fockState.isNull())
+				continue;
+
+			for(int k =  ia.getNumCreationOperators() - 1; k >= 0; k--){
+				operators[getModel().getBasisIndex(ia.getCreationOperatorIndex(k))][0]*fockState;
+				if(fockState.isNull())
+					break;
+			}
+			if(fockState.isNull())
+				continue;
+
+			int to = fockStateMap->getBasisIndex(fockState);
+
+			*subspaceContext.manyParticleModel <<HoppingAmplitude(
+				ia.getAmplitude()*(double)fockState.getPrefactor(),
+				{to},
+				{from}
+			);
+		}
+	}
+	subspaceContext.manyParticleModel->construct();
+
+	delete fockStateMap;
 }
 
 // ExactDiagonalizer::SubspaceContext::SubspaceContext(

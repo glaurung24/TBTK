@@ -86,36 +86,36 @@ DifferenceRule* DifferenceRule::clone() const{
 	);
 }
 
-WrapperRule DifferenceRule::createNewRule(
-	const LadderOperator &ladderOperator
-) const{
-	Index stateIndex = ladderOperator.getPhysicalIndex();
-	LadderOperator::Type type = ladderOperator.getType();
+// WrapperRule DifferenceRule::createNewRule(
+// 	const LadderOperator &ladderOperator
+// ) const{
+// 	Index stateIndex = ladderOperator.getPhysicalIndex();
+// 	LadderOperator::Type type = ladderOperator.getType();
 
-	int difference = this->difference;
+// 	int difference = this->difference;
 
-	int sign;
-	if(type == LadderOperator::Type::Creation)
-		sign = 1;
-	else
-		sign = -1;
+// 	int sign;
+// 	if(type == LadderOperator::Type::Creation)
+// 		sign = 1;
+// 	else
+// 		sign = -1;
 
-	for(unsigned int n = 0; n < addStateIndices.size(); n++)
-		if(addStateIndices.at(n).equals(stateIndex, true))
-			difference += sign;
+// 	for(unsigned int n = 0; n < addStateIndices.size(); n++)
+// 		if(addStateIndices.at(n).equals(stateIndex, true))
+// 			difference += sign;
 
-	for(unsigned int n = 0; n < subtractStateIndices.size(); n++)
-		if(subtractStateIndices.at(n).equals(stateIndex, true))
-			difference -= sign;
+// 	for(unsigned int n = 0; n < subtractStateIndices.size(); n++)
+// 		if(subtractStateIndices.at(n).equals(stateIndex, true))
+// 			difference -= sign;
 
-	return WrapperRule(
-		DifferenceRule(
-			addStateIndices,
-			subtractStateIndices,
-			difference
-		)
-	);
-}
+// 	return WrapperRule(
+// 		DifferenceRule(
+// 			addStateIndices,
+// 			subtractStateIndices,
+// 			difference
+// 		)
+// 	);
+// }
 
 
 bool DifferenceRule::isSatisfied(

@@ -1,6 +1,6 @@
 #include "TBTK/FockStateRule/DifferenceRule.h"
 #include "TBTK/FockStateRule/SumRule.h"
-#include "TBTK/FockStateRule/WrapperRule.h"
+#include "TBTK/FockStateRule/FockStateRule.h"
 #include "TBTK/FockSpace.h"
 #include "TBTK/Model.h"
 
@@ -117,8 +117,8 @@ TEST_F(FockSpaceTest, getOperators1){
 TEST_F(FockSpaceTest, getVacuumState1){
 	FockState fockState = fockSpaceFermion.getVacuumState();
 	const BitRegister &bitRegister = fockState.getBitRegister();
-	for(unsigned int n = 0; n < bitRegister.getNumBits(); n++)
-		EXPECT_FALSE(bitRegister.getBit(n));
+	for(unsigned int n = 0; n < bitRegister.size(); n++)
+		EXPECT_FALSE(bitRegister[n]);
 }
 
 //TBTKFeature ManyParticle.FockSpace.getNumFermions.1 2019-11-06
@@ -357,109 +357,111 @@ TEST_F(FockSpaceTest, createFockStateMap2){
 	delete fockStateMap;
 }
 
-//TBTKFeature ManyParticle.FockSpace.createFockStateMap.3 2019-11-06
-TEST_F(FockSpaceTest, createFockStateMap3){
-	FockStateRule::DifferenceRule differenceRule(
-		{{0}, {1}},
-		{{2}, {3}},
-		1
-	);
+// //TBTKFeature ManyParticle.FockSpace.createFockStateMap.3 2019-11-06
+// TEST_F(FockSpaceTest, createFockStateMap3){
+// 	FockStateRule::DifferenceRule differenceRule(
+// 		{{0}, {1}},
+// 		{{2}, {3}},
+// 		1
+// 	);
 
-	FockStateMap::FockStateMap *fockStateMap0
-		= fockSpaceFermion.createFockStateMap(differenceRule);
+// 	FockStateMap::FockStateMap *fockStateMap0
+// 		= fockSpaceFermion.createFockStateMap(differenceRule);
 
-	FockStateRuleSet fockStateRuleSet;
-	fockStateRuleSet.addFockStateRule(differenceRule);
-	FockStateMap::FockStateMap *fockStateMap1
-		= fockSpaceFermion.createFockStateMap(fockStateRuleSet);
+// 	FockStateRuleSet fockStateRuleSet;
+// 	fockStateRuleSet.addFockStateRule(differenceRule);
+// 	FockStateMap::FockStateMap *fockStateMap1
+// 		= fockSpaceFermion.createFockStateMap(fockStateRuleSet);
 
-	EXPECT_EQ(fockStateMap0->getBasisSize(), fockStateMap1->getBasisSize());
-	for(unsigned int n = 0; n < fockStateMap0->getBasisSize(); n++){
-		EXPECT_EQ(
-			fockStateMap0->getFockState(n).getBitRegister(),
-			fockStateMap1->getFockState(n).getBitRegister()
-		);
-	}
-}
+// 	EXPECT_EQ(fockStateMap0->getBasisSize(), fockStateMap1->getBasisSize());
+// 	for(unsigned int n = 0; n < fockStateMap0->getBasisSize(); n++){
+// 		EXPECT_EQ(
+// 			fockStateMap0->getFockState(n).getBitRegister(),
+// 			fockStateMap1->getFockState(n).getBitRegister()
+// 		);
+// 	}
+// }
 
-//TBTKFeature ManyParticle.FockSpace.createFockStateMap.4 2019-11-06
-TEST_F(FockSpaceTest, createFockStateMap4){
-	FockStateRule::DifferenceRule differenceRule(
-		{{0}, {1}},
-		{{2}, {3}},
-		1
-	);
-	FockStateRule::SumRule sumRule(
-		{{0}, {1}, {2}, {3}},
-		3
-	);
+// //TBTKFeature ManyParticle.FockSpace.createFockStateMap.4 2019-11-06
+// TEST_F(FockSpaceTest, createFockStateMap4){
+// 	FockStateRule::DifferenceRule differenceRule(
+// 		{{0}, {1}},
+// 		{{2}, {3}},
+// 		1
+// 	);
+// 	FockStateRule::SumRule sumRule(
+// 		{{0}, {1}, {2}, {3}},
+// 		3
+// 	);
 
-	FockStateMap::FockStateMap *fockStateMap0
-		= fockSpaceFermion.createFockStateMap({
-			FockStateRule::WrapperRule(differenceRule),
-			FockStateRule::WrapperRule(sumRule),
-		});
+// 	FockStateMap::FockStateMap *fockStateMap0
+// 		= fockSpaceFermion.createFockStateMap({
+// 			FockStateRule::WrapperRule(differenceRule),
+// 			FockStateRule::WrapperRule(sumRule),
+// 		});
 
-	FockStateRuleSet fockStateRuleSet;
-	fockStateRuleSet.addFockStateRule(differenceRule);
-	fockStateRuleSet.addFockStateRule(sumRule);
-	FockStateMap::FockStateMap *fockStateMap1
-		= fockSpaceFermion.createFockStateMap(fockStateRuleSet);
+// 	FockStateRuleSet fockStateRuleSet;
+// 	fockStateRuleSet.addFockStateRule(differenceRule);
+// 	fockStateRuleSet.addFockStateRule(sumRule);
+// 	FockStateMap::FockStateMap *fockStateMap1
+// 		= fockSpaceFermion.createFockStateMap(fockStateRuleSet);
 
-	EXPECT_EQ(fockStateMap0->getBasisSize(), fockStateMap1->getBasisSize());
-	for(unsigned int n = 0; n < fockStateMap0->getBasisSize(); n++){
-		EXPECT_EQ(
-			fockStateMap0->getFockState(n).getBitRegister(),
-			fockStateMap1->getFockState(n).getBitRegister()
-		);
-	}
-}
+// 	EXPECT_EQ(fockStateMap0->getBasisSize(), fockStateMap1->getBasisSize());
+// 	for(unsigned int n = 0; n < fockStateMap0->getBasisSize(); n++){
+// 		EXPECT_EQ(
+// 			fockStateMap0->getFockState(n).getBitRegister(),
+// 			fockStateMap1->getFockState(n).getBitRegister()
+// 		);
+// 	}
+// }
 
-//TBTKFeature ManyParticle.FockSpace.createFockStateMap.5 2019-11-06
-TEST_F(FockSpaceTest, createFockStateMap5){
-	FockStateRule::DifferenceRule differenceRule(
-		{{0}, {1}},
-		{{2}, {3}},
-		1
-	);
-	FockStateRule::SumRule sumRule(
-		{{0}, {1}, {2}, {3}},
-		3
-	);
+// //TBTKFeature ManyParticle.FockSpace.createFockStateMap.5 2019-11-06
+// TEST_F(FockSpaceTest, createFockStateMap5){
+// 	FockStateRule::DifferenceRule differenceRule(
+// 		{{0}, {1}},
+// 		{{2}, {3}},
+// 		1
+// 	);
+// 	FockStateRule::SumRule sumRule(
+// 		{{0}, {1}, {2}, {3}},
+// 		3
+// 	);
 
-	std::vector<FockStateRule::WrapperRule> rules = {
-		FockStateRule::WrapperRule(differenceRule),
-		FockStateRule::WrapperRule(sumRule),
-	};
-	FockStateMap::FockStateMap *fockStateMap0
-		= fockSpaceFermion.createFockStateMap(rules);
+// 	std::vector<FockStateRule::WrapperRule> rules = {
+// 		FockStateRule::WrapperRule(differenceRule),
+// 		FockStateRule::WrapperRule(sumRule),
+// 	};
+// 	FockStateMap::FockStateMap *fockStateMap0
+// 		= fockSpaceFermion.createFockStateMap(rules);
 
-	FockStateRuleSet fockStateRuleSet;
-	fockStateRuleSet.addFockStateRule(differenceRule);
-	fockStateRuleSet.addFockStateRule(sumRule);
-	FockStateMap::FockStateMap *fockStateMap1
-		= fockSpaceFermion.createFockStateMap(fockStateRuleSet);
+// 	FockStateRuleSet fockStateRuleSet;
+// 	fockStateRuleSet.addFockStateRule(differenceRule);
+// 	fockStateRuleSet.addFockStateRule(sumRule);
+// 	FockStateMap::FockStateMap *fockStateMap1
+// 		= fockSpaceFermion.createFockStateMap(fockStateRuleSet);
 
-	EXPECT_EQ(fockStateMap0->getBasisSize(), fockStateMap1->getBasisSize());
-	for(unsigned int n = 0; n < fockStateMap0->getBasisSize(); n++){
-		EXPECT_EQ(
-			fockStateMap0->getFockState(n).getBitRegister(),
-			fockStateMap1->getFockState(n).getBitRegister()
-		);
-	}
-}
+// 	EXPECT_EQ(fockStateMap0->getBasisSize(), fockStateMap1->getBasisSize());
+// 	for(unsigned int n = 0; n < fockStateMap0->getBasisSize(); n++){
+// 		EXPECT_EQ(
+// 			fockStateMap0->getFockState(n).getBitRegister(),
+// 			fockStateMap1->getFockState(n).getBitRegister()
+// 		);
+// 	}
+// }
 
 //TBTKFeature ManyParticle.FockSpace.createFockStateMap.6 2019-11-06
 TEST_F(FockSpaceTest, createFockStateMap6){
-	FockStateRule::DifferenceRule differenceRule(
+	std::shared_ptr<FockStateRule::FockStateRule> differenceRule =
+	std::make_shared<FockStateRule::FockStateRule>(FockStateRule::DifferenceRule(
 		{{0}, {1}},
 		{{2}, {3}},
 		1
-	);
-	FockStateRule::SumRule sumRule(
+	));
+	std::shared_ptr<FockStateRule::FockStateRule> sumRule =
+		std::make_shared<FockStateRule::FockStateRule>(FockStateRule::SumRule(
 		{{0}, {1}, {2}, {3}},
 		3
-	);
+	));
 
 	FockStateRuleSet fockStateRuleSet;
 	fockStateRuleSet.addFockStateRule(differenceRule);
@@ -471,18 +473,18 @@ TEST_F(FockSpaceTest, createFockStateMap6){
 	for(unsigned int n = 0; n < 2; n++){
 		for(
 			unsigned int c = 0;
-			c < expectedResult[n].getNumBits();
+			c < expectedResult[n].size();
 			c++
 		){
-			expectedResult[n].setBit(c, 0);
+			expectedResult[n].set(c, 0);
 		}
 	}
-	expectedResult[0].setBit(0, 1);
-	expectedResult[0].setBit(1, 1);
-	expectedResult[0].setBit(2, 1);
-	expectedResult[1].setBit(0, 1);
-	expectedResult[1].setBit(1, 1);
-	expectedResult[1].setBit(3, 1);
+	expectedResult[0].set(0, 1);
+	expectedResult[0].set(1, 1);
+	expectedResult[0].set(2, 1);
+	expectedResult[1].set(0, 1);
+	expectedResult[1].set(1, 1);
+	expectedResult[1].set(3, 1);
 
 	EXPECT_EQ(fockStateMap->getBasisSize(), 2);
 	for(unsigned int n = 0; n < fockStateMap->getBasisSize(); n++){

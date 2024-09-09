@@ -30,15 +30,19 @@
 #include "TBTK/FockStateMap/DefaultMap.h"
 #include "TBTK/FockStateMap/FockStateMap.h"
 #include "TBTK/FockStateMap/LookupTableMap.h"
-// #include "TBTK/FockStateRuleSet.h"
-// #include "TBTK/FockStateRule/FockStateRule.h"
+#include "TBTK/FockStateRuleSet.h"
+#include "TBTK/FockStateRule/FockStateRule.h"
 // #include "TBTK/FockStateRule/WrapperRule.h"
 #include "TBTK/HoppingAmplitudeSet.h"
 #include "TBTK/LadderOperator.h"
 //#include "Model.h"
 #include "TBTK/Statistics.h"
 
+#include <memory>
+
 namespace TBTK{
+
+class FockStateRuleSet;
 
 class FockSpace{
 public:
@@ -92,9 +96,9 @@ public:
 	) const;
 
 	/** Create FockStateMap. */
-	// FockStateMap::FockStateMap* createFockStateMap(
-	// 	const FockStateRule::FockStateRule &rule
-	// ) const;
+	FockStateMap::FockStateMap* createFockStateMap(
+		const std::shared_ptr<FockStateRule::FockStateRule> rule
+	) const;
 
 	// /** Create FockStateMap. */
 	// FockStateMap::FockStateMap* createFockStateMap(
@@ -106,10 +110,10 @@ public:
 	// 	std::vector<FockStateRule::WrapperRule> rules
 	// ) const;
 
-	// /** Create FockStateMap. */
-	// FockStateMap::FockStateMap* createFockStateMap(
-	// 	const FockStateRuleSet &rules
-	// ) const;
+	/** Create FockStateMap. */
+	FockStateMap::FockStateMap* createFockStateMap(
+		const FockStateRuleSet &rules
+	) const;
 
 	/** Get amplitude set. */
 	const HoppingAmplitudeSet* getHoppingAmplitudeSet() const;

@@ -1,5 +1,6 @@
 #include "TBTK/FockStateRule/DifferenceRule.h"
 #include "TBTK/FockStateRule/SumRule.h"
+#include "TBTK/FockStateRule/FockStateRule.h"
 #include "TBTK/ManyParticleContext.h"
 #include "TBTK/SingleParticleContext.h"
 
@@ -40,40 +41,6 @@ protected:
 	}
 };
 
-//TBTKFeature ManyParticle.ManyParticleContext.wrapsBitRegister.1 2019-11-07
-TEST_F(ManyParticleContextTest, wrapsBitRegister1){
-	EXPECT_TRUE(manyParticleContext[0].wrapsBitRegister());
-	EXPECT_FALSE(manyParticleContext[0].wrapsExtensiveBitRegister());
-}
-
-//TBTKFeature ManyParticle.ManyParticleContext.wrapsExtensiveBitRegister.1 2019-11-07
-TEST_F(ManyParticleContextTest, wrapsExtensiveBitRegister1){
-	EXPECT_FALSE(manyParticleContext[1].wrapsBitRegister());
-	EXPECT_TRUE(manyParticleContext[1].wrapsExtensiveBitRegister());
-}
-
-//TBTKFeature ManyParticle.ManyParticleContext.getFockSpaceBitRegister.1 2019-11-07
-TEST_F(ManyParticleContextTest, getFockSpaceBitRegister1){
-	const FockSpace<BitRegister> *fockSpaceBitRegister
-		= manyParticleContext[0].getFockSpaceBitRegister();
-
-	EXPECT_TRUE(fockSpaceBitRegister != nullptr);
-}
-
-//TBTKFeature ManyParticle.ManyParticleContext.getFockSpaceBitRegister.2 2019-11-07
-TEST_F(ManyParticleContextTest, getFockSpaceBitRegister2){
-	EXPECT_EXIT(
-		{
-			Streams::setStdMuteErr();
-			manyParticleContext[
-				0
-			].getFockSpaceExtensiveBitRegister();
-		},
-		::testing::ExitedWithCode(1),
-		""
-	);
-}
-
 //TBTKFeature ManyParticle.ManyParticleContext.getFockSpaceExtensiveBitRegister.1 2019-11-07
 TEST_F(ManyParticleContextTest, getFockSpaceExtensiveBitRegister1){
 	EXPECT_EXIT(
@@ -86,23 +53,17 @@ TEST_F(ManyParticleContextTest, getFockSpaceExtensiveBitRegister1){
 	);
 }
 
-//TBTKFeature ManyParticle.ManyParticleContext.getFockSpaceBitRegister.2 2019-11-07
-TEST_F(ManyParticleContextTest, getFockSpaceExtensiveBitRegister2){
-	const FockSpace<ExtensiveBitRegister> *fockSpaceExtensiveBitRegister
-		= manyParticleContext[1].getFockSpaceExtensiveBitRegister();
-
-	EXPECT_TRUE(fockSpaceExtensiveBitRegister != nullptr);
-}
-
 //TBTKFeature ManyParticle.ManyParticleContext.addFockStateRule.1 2019-11-07
 //TBTKFeature ManyParticle.ManyParticleContext.getFockStateRuleSet.1 2019-11-07
 TEST_F(ManyParticleContextTest, getFockStateRuleSet1){
-	FockStateRule::DifferenceRule differenceRule(
+	std::shared_ptr<FockStateRule::FockStateRule> differenceRule =
+	std::make_shared<FockStateRule::FockStateRule>(FockStateRule::DifferenceRule
+	(
 		{{0}, {1}},
 		{{2}, {3}},
 		1
-	);
-	FockStateRule::SumRule sumRule({{0}, {1}, {2}, {3}}, 3);
+	));
+	std::shared_ptr<FockStateRule::FockStateRule> sumRule = std::make_shared<FockStateRule::FockStateRule>(FockStateRule::SumRule({{0}, {1}, {2}, {3}}, 3));
 
 	manyParticleContext[0].addFockStateRule(differenceRule);
 	manyParticleContext[0].addFockStateRule(sumRule);

@@ -39,7 +39,7 @@ bool FockStateRuleSet::isSatisfied(
 ) const{
 	bool isSatisfied = true;
 	for(unsigned int n = 0; n < fockStateRules.size(); n++){
-		if(!fockStateRules.at(n).isSatisfied(fockSpace, fockState)){
+		if(!fockStateRules.at(n)->isSatisfied(fockSpace, fockState)){
 			isSatisfied = false;
 			break;
 		}

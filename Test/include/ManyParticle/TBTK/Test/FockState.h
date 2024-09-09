@@ -26,7 +26,7 @@ TEST(FockState, isNull1){
 	EXPECT_FALSE(fockState.isNull());
 
 	BitRegister &bitRegister = fockState.getBitRegister();
-	bitRegister.setBit(bitRegister.getNumBits()-1, 1);
+	bitRegister.set(bitRegister.size()-1, 1);
 	EXPECT_TRUE(fockState.isNull());
 }
 
@@ -37,10 +37,10 @@ TEST(FockState, getRegister1){
 	BitRegister &bitRegister0 = fockState.getBitRegister();
 	BitRegister &bitRegister1 = fockState.getBitRegister();
 
-	bitRegister0.setBit(7, 1);
-	EXPECT_EQ(bitRegister1.getBit(7), 1);
-	bitRegister0.setBit(7, 0);
-	EXPECT_EQ(bitRegister1.getBit(7), 0);
+	bitRegister0.set(7, 1);
+	EXPECT_EQ(bitRegister1[7], 1);
+	bitRegister0.set(7, 0);
+	EXPECT_EQ(bitRegister1[7], 0);
 }
 
 //TBTKFeature ManyParticle.FockState.getRegister.2 2019-11-03
@@ -50,10 +50,10 @@ TEST(FockState, getRegister2){
 	BitRegister &bitRegister0 = fockState.getBitRegister();
 	const BitRegister &bitRegister1 = fockState.getBitRegister();
 
-	bitRegister0.setBit(7, 1);
-	EXPECT_EQ(bitRegister1.getBit(7), 1);
-	bitRegister0.setBit(7, 0);
-	EXPECT_EQ(bitRegister1.getBit(7), 0);
+	bitRegister0.set(7, 1);
+	EXPECT_EQ(bitRegister1[7], 1);
+	bitRegister0.set(7, 0);
+	EXPECT_EQ(bitRegister1[7], 0);
 }
 
 //TBTKFeature ManyParticle.FockState.getPrefactor.1 2019-11-03
