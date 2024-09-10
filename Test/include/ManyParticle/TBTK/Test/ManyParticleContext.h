@@ -56,14 +56,14 @@ TEST_F(ManyParticleContextTest, getFockSpaceExtensiveBitRegister1){
 //TBTKFeature ManyParticle.ManyParticleContext.addFockStateRule.1 2019-11-07
 //TBTKFeature ManyParticle.ManyParticleContext.getFockStateRuleSet.1 2019-11-07
 TEST_F(ManyParticleContextTest, getFockStateRuleSet1){
-	std::shared_ptr<FockStateRule::FockStateRule> differenceRule =
-	std::make_shared<FockStateRule::FockStateRule>(FockStateRule::DifferenceRule
-	(
-		{{0}, {1}},
-		{{2}, {3}},
-		1
-	));
-	std::shared_ptr<FockStateRule::FockStateRule> sumRule = std::make_shared<FockStateRule::FockStateRule>(FockStateRule::SumRule({{0}, {1}, {2}, {3}}, 3));
+	std::shared_ptr<FockStateRule::FockStateRule> differenceRule(
+		new FockStateRule::DifferenceRule
+		(
+			{{0}, {1}},
+			{{2}, {3}},
+			1
+		));
+	std::shared_ptr<FockStateRule::FockStateRule> sumRule(new FockStateRule::SumRule({{0}, {1}, {2}, {3}}, 3));
 
 	manyParticleContext[0].addFockStateRule(differenceRule);
 	manyParticleContext[0].addFockStateRule(sumRule);

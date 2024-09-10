@@ -117,7 +117,7 @@ TEST_F(LadderOperatorTest, getNumParticles1){
 	FockState fockState(NUM_STATES);
 	EXPECT_EQ(fermionicCreation[0].getNumParticles(fockState), 0);
 
-	fockState.getBitRegister() = 0x00000004;
+	fockState.getBitRegister() = (unsigned) 0x00000004;
 	EXPECT_EQ(fermionicCreation[0].getNumParticles(fockState), 1);
 }
 
@@ -126,13 +126,13 @@ TEST_F(LadderOperatorTest, getNumParticles2){
 	FockState fockState(NUM_STATES);
 	EXPECT_EQ(bosonicCreation[0].getNumParticles(fockState), 0);
 
-	fockState.getBitRegister() = 0x00000010;
+	fockState.getBitRegister() = (unsigned) 0x00000010;
 	EXPECT_EQ(bosonicCreation[0].getNumParticles(fockState), 1);
 
-	fockState.getBitRegister() = 0x00000020;
+	fockState.getBitRegister() = (unsigned) 0x00000020;
 	EXPECT_EQ(bosonicCreation[0].getNumParticles(fockState), 2);
 
-	fockState.getBitRegister() = 0x00000030;
+	fockState.getBitRegister() = (unsigned) 0x00000030;
 	EXPECT_EQ(bosonicCreation[0].getNumParticles(fockState), 3);
 }
 

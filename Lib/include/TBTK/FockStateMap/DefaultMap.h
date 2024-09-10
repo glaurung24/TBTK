@@ -49,7 +49,7 @@ private:
 };
 
 
-DefaultMap::DefaultMap(
+inline DefaultMap::DefaultMap(
 	unsigned int exponentialDimension
 ) :
 	FockStateMap(exponentialDimension)
@@ -57,7 +57,7 @@ DefaultMap::DefaultMap(
 }
 
 
-DefaultMap::~DefaultMap(){
+inline DefaultMap::~DefaultMap(){
 }
 
 

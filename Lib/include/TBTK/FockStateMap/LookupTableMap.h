@@ -19,6 +19,7 @@
  *  @brief LookupTableMap.
  *
  *  @author Kristofer Björnson
+ *  @author Andreas Theiler
  */
 
 #ifndef COM_DAFER45_TBTK_LOOKUP_TABLE_MAP
@@ -58,7 +59,7 @@ private:
 };
 
 
-LookupTableMap::LookupTableMap(
+inline LookupTableMap::LookupTableMap(
 	unsigned int exponentialDimension
 ) :
 	FockStateMap(exponentialDimension)
@@ -66,15 +67,15 @@ LookupTableMap::LookupTableMap(
 }
 
 
-LookupTableMap::~LookupTableMap(){
+inline LookupTableMap::~LookupTableMap(){
 }
 
 
-unsigned int LookupTableMap::getBasisSize() const{
+inline unsigned int LookupTableMap::getBasisSize() const{
 	return states.size();
 }
 
-unsigned int LookupTableMap::getBasisIndex(
+inline unsigned int LookupTableMap::getBasisIndex(
 	const FockState &fockState
 ) const{
 	unsigned int min = 0;
@@ -96,14 +97,14 @@ unsigned int LookupTableMap::getBasisIndex(
 }
 
 
-FockState LookupTableMap::getFockState(
+inline FockState LookupTableMap::getFockState(
 	unsigned int index
 ) const{
 	return states.at(index);
 }
 
 
-void LookupTableMap::addState(
+inline void LookupTableMap::addState(
 	const FockState &fockState
 ){
 	if(

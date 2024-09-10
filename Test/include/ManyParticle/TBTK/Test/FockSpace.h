@@ -451,17 +451,17 @@ TEST_F(FockSpaceTest, createFockStateMap2){
 
 //TBTKFeature ManyParticle.FockSpace.createFockStateMap.6 2019-11-06
 TEST_F(FockSpaceTest, createFockStateMap6){
-	std::shared_ptr<FockStateRule::FockStateRule> differenceRule =
-	std::make_shared<FockStateRule::FockStateRule>(FockStateRule::DifferenceRule(
-		{{0}, {1}},
-		{{2}, {3}},
-		1
-	));
-	std::shared_ptr<FockStateRule::FockStateRule> sumRule =
-		std::make_shared<FockStateRule::FockStateRule>(FockStateRule::SumRule(
-		{{0}, {1}, {2}, {3}},
-		3
-	));
+	std::shared_ptr<FockStateRule::FockStateRule> differenceRule(
+		new FockStateRule::DifferenceRule(
+			{{0}, {1}},
+			{{2}, {3}},
+			1
+		));
+	std::shared_ptr<FockStateRule::FockStateRule> sumRule(
+		new FockStateRule::SumRule(
+			{{0}, {1}, {2}, {3}},
+			3
+		));
 
 	FockStateRuleSet fockStateRuleSet;
 	fockStateRuleSet.addFockStateRule(differenceRule);

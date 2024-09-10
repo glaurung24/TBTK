@@ -57,16 +57,16 @@ private:
 };
 
 
-FockStateMap::FockStateMap(unsigned int exponentialDimension){
+inline FockStateMap::FockStateMap(unsigned int exponentialDimension){
 	this->exponentialDimension = exponentialDimension;
 }
 
 
-FockStateMap::~FockStateMap(){
+inline FockStateMap::~FockStateMap(){
 }
 
 
-unsigned int FockStateMap::getExponentialDimension() const{
+inline unsigned int FockStateMap::getExponentialDimension() const{
 	return exponentialDimension;
 }
 
