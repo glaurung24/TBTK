@@ -27,6 +27,7 @@
 #include "boost/dynamic_bitset/dynamic_bitset.hpp"
 
 #include <sstream>
+#include <limits.h>
 
 namespace TBTK{
 
@@ -42,7 +43,7 @@ namespace TBTK{
 class BitRegister : public boost::dynamic_bitset<>{
 public:
 	/** Constructor. */
-	BitRegister(unsigned long int numBits = 8*sizeof(unsigned int));
+	BitRegister(unsigned long int numBits = CHAR_BIT*sizeof(unsigned int));
 
 	/** Constructor. */
 	BitRegister(unsigned long int numBits, unsigned long int value);
@@ -93,10 +94,13 @@ public:
 	// const BitRegister operator--(int);
 
 	/** Assignment operator. */
-	void operator=(const BitRegister &rhs);
+	BitRegister& operator=(const BitRegister &rhs);
 
-	// /** Assignment operator. */
-	// void operator=(unsigned int rhs);
+	/** Assignment operator. */
+	BitRegister& operator=(unsigned long int rhs);
+
+	/** Assignment operator. */
+	BitRegister& operator=(unsigned int rhs);
 
 	// /** Left bitshift operator. */
 	// BitRegister operator<<(unsigned int rhs) const;
@@ -255,15 +259,6 @@ inline const BitRegister BitRegister::operator++(int){
 // 	returnValue = *this;
 // 	values--;
 // 	return returnValue;
-// }
-
-inline void BitRegister::operator=(const BitRegister &rhs){
-	if(this != &rhs)
-		*this = BitRegister(rhs);
-}
-
-// inline void BitRegister::operator=(unsigned int rhs){
-// 	values = rhs;
 // }
 
 // inline BitRegister BitRegister::operator<<(unsigned int rhs) const{

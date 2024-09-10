@@ -35,13 +35,36 @@ BitRegister::BitRegister(unsigned long int numBits, unsigned long int value):
 	boost::dynamic_bitset<>(numBits, value)
 {
 	MOST_SIGNIFICANT_BIT_MASK = boost::dynamic_bitset<>(numBits);
-	MOST_SIGNIFICANT_BIT_MASK.set(this->size()-1, true);
+	MOST_SIGNIFICANT_BIT_MASK.set(MOST_SIGNIFICANT_BIT_MASK.size()-1, true);
 }
 
 BitRegister::BitRegister(const BitRegister &bitRegister) :
 	boost::dynamic_bitset<>(bitRegister)
 {
-	MOST_SIGNIFICANT_BIT_MASK.set(this->size()-1, true);
+	MOST_SIGNIFICANT_BIT_MASK = boost::dynamic_bitset<>(this->size());
+	MOST_SIGNIFICANT_BIT_MASK.set(MOST_SIGNIFICANT_BIT_MASK.size()-1, true);
+}
+
+BitRegister& BitRegister::operator=(const BitRegister &rhs){
+	if(this != &rhs)
+		*this = BitRegister(rhs);
+	return *this;
+}
+
+BitRegister& BitRegister::operator=(unsigned long int rhs){
+	reset();
+	resize(sizeof(unsigned long int)*CHAR_BIT);
+	BitRegister newRegister(sizeof(unsigned long int)*CHAR_BIT, rhs);
+	*this |= newRegister; //TODO there should be a cleaner way...
+	return *this;
+}
+
+BitRegister& BitRegister::operator=(unsigned int rhs){
+	reset();
+	resize(sizeof(unsigned int)*CHAR_BIT);
+	BitRegister newRegister(sizeof(unsigned int)*CHAR_BIT, rhs);
+	*this |= newRegister;  //TODO there should be a cleaner way...
+	return *this;
 }
 
 /*BitRegister::~BitRegister(){
