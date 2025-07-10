@@ -551,6 +551,26 @@ void BlockDiagonalizer::calculateGreensFunctionCallback(
 		if(greensFunction.getType() == Property::GreensFunction::Type::Advanced)
 			delta *= -1;
 
+		//Calculate the nominator in the Green's function separately
+		//This should speed up calculations with a high energy resolution
+
+		int basisSize = propertyExtractor->solver.getModel().getBasisSize();
+		vector<complex<double>> greensFctNominators(basisSize);
+		vector<double> sortedEigenvalues(basisSize);
+
+		for(
+			int n = 0;
+			n < basisSize;
+			n++
+		){
+			complex<double> amplitude0
+				= propertyExtractor->getAmplitude(n, components[0]);
+			complex<double> amplitude1
+				= propertyExtractor->getAmplitude(n, components[1]);
+			greensFctNominators.push_back(amplitude0*conj(amplitude1));
+			sortedEigenvalues.push_back(propertyExtractor->getEigenValue(n));
+		}
+
 		for(int e = 0; e < energyResolution; e++){
 			double E = lowerBound + e*dE;
 			for(
@@ -559,21 +579,9 @@ void BlockDiagonalizer::calculateGreensFunctionCallback(
 					).getBasisSize();
 				n++
 			){
-				double E_n
-					= propertyExtractor->getEigenValue(n);
-				complex<double> amplitude0
-					= propertyExtractor->getAmplitude(
-						n,
-						components[0]
-					);
-				complex<double> amplitude1
-					= propertyExtractor->getAmplitude(
-						n,
-						components[1]
-					);
 				data[offset + e]
-					+= amplitude0*conj(amplitude1)/(
-						E - E_n + i*delta
+					+= greensFctNominators[n]/(
+						E - sortedEigenvalues[n] + i*delta
 					);
 			}
 		}
