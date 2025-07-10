@@ -555,8 +555,8 @@ void BlockDiagonalizer::calculateGreensFunctionCallback(
 		//This should speed up calculations with a high energy resolution
 
 		int basisSize = propertyExtractor->solver.getModel().getBasisSize();
-		vector<complex<double>> greensFctNominators(basisSize);
-		vector<double> sortedEigenvalues(basisSize);
+		vector<complex<double>> greensFctNominators(basisSize, 0.);
+		vector<double> sortedEigenvalues(basisSize, 0.);
 
 		for(
 			int n = 0;
@@ -567,8 +567,8 @@ void BlockDiagonalizer::calculateGreensFunctionCallback(
 				= propertyExtractor->getAmplitude(n, components[0]);
 			complex<double> amplitude1
 				= propertyExtractor->getAmplitude(n, components[1]);
-			greensFctNominators.push_back(amplitude0*conj(amplitude1));
-			sortedEigenvalues.push_back(propertyExtractor->getEigenValue(n));
+			greensFctNominators[n] = amplitude0*conj(amplitude1);
+			sortedEigenvalues[n] = propertyExtractor->getEigenValue(n);
 		}
 
 		for(int e = 0; e < energyResolution; e++){
